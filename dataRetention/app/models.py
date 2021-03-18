@@ -1,19 +1,12 @@
 from django.db import models
 import uuid
 
-class Data_Retention(models.Model):
-    data_id = models.UUIDField(primary_key=True, default=uuid.uuid4)
-    email = 
-    event_id = 
-    state_id = 
-    id_receipt =
+class User_Data(models.Model):
+    email = models.EmailField(unique = True, null=False, primary_key=True)
+    id_receipt = models.CharField(unique=True, max_length = 100)
 
-class Dates(models.Model):
-    datein =
-    dataout =
-    event_created =
-    state_last_changed =
-    state_last_updated =
-    state_created =
-    receipt_timestamp = 
-
+class Dates_Stay(models.Model):
+    datein = models.DateField()
+    dataout = models.DateField()
+    receipt_timestamp = models.CharField(max_length = 100)
+    email = models.ForeignKey(Data_Retention, on_delete=models.CASCADE)
