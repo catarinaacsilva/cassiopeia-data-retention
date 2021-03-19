@@ -18,7 +18,7 @@ def index(request):
     return render(request, 'index.html')
 
 '''
-    Receive data stay
+    Receive data stay from cassiopeia
 '''
 @csrf_exempt
 @api_view(('POST',))
