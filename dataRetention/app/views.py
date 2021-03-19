@@ -51,3 +51,22 @@ def receiptData():
         return Response('Cannot create the data stay record', status=status.HTTP_400_BAD_REQUEST)
 
     return Response(status=status.HTTP_201_CREATED)
+
+'''
+    Receive consent information from cassioepia
+'''
+@csrf_exempt
+@api_view(('POST',))
+def consentData():
+    parameters = json.loads(request.body)
+    policyid = parameters['policyid']
+    consent = parameters['consent']
+    email = parameters['email']
+    timestamp = parameters['policyid']
+
+    try:
+        Policy_Consent.objects.create(policyid=policyid, consent=consent, email=email, timestamp=timestamp)
+    except:
+        return Response('Cannot create the consent record', status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(status=status.HTTP_201_CREATED)
