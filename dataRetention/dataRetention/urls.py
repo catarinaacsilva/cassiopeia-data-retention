@@ -23,5 +23,6 @@ from app import views
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^stayData/', views.stayData, name='stayData'),
+    url(r'^receiptData/', views.receiptData, name='receiptData'),
     
 ]

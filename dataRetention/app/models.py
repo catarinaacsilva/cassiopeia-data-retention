@@ -2,15 +2,15 @@ from django.db import models
 import uuid
 
 class User(models.Model):
-    user_id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    email = models.EmailField(unique = True, null=False, primary_key=True)
 
 class Stay_Data(models.Model):
-    email = models.EmailField(unique = True, null=False, primary_key=True)
+    email = models.ForeignKey(User, on_delete=models.CASCADE)
     datein = models.DateField()
     dateout = models.DateField()
 
 class Receipt_Data(models.Model):
     id_receipt = models.CharField(unique=True, max_length = 100)
     receipt_timestamp = models.CharField(max_length = 100)
-    email = models.OneToOneField(Stay_Data, on_delete=models.CASCADE, primary_key=True)
+    stay_id = models.OneToOneField(Stay_Data, on_delete=models.CASCADE, primary_key=True)
   

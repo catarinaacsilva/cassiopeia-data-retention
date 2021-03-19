@@ -34,3 +34,20 @@ def stayData():
         return Response('Cannot create the data stay record', status=status.HTTP_400_BAD_REQUEST)
 
     return Response(status=status.HTTP_201_CREATED)
+
+'''
+    Receive receipt data from receipt generator
+'''
+@csrf_exempt
+@api_view(('POST',))
+def receiptData():
+    parameters = json.loads(request.body)
+    id_receipt = parameters['id_receipt']
+    receipt_timestamp = parameters['receipt_timestamp']
+
+    try:
+        Receipt_Data.objects.create(id_receipt)
+    except:
+        return Response('Cannot create the data stay record', status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(status=status.HTTP_201_CREATED)
