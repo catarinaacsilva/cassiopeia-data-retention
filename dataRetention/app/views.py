@@ -17,6 +17,9 @@ logger = logging.getLogger(__name__)
 def index(request):
     return render(request, 'index.html')
 
+'''
+    Receive data stay
+'''
 @csrf_exempt
 @api_view(('POST',))
 def stayData():
