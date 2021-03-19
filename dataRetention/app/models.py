@@ -9,4 +9,4 @@ class Dates_Stay(models.Model):
     datein = models.DateField()
     dataout = models.DateField()
     receipt_timestamp = models.CharField(max_length = 100)
-    email = models.ForeignKey(Data_Retention, on_delete=models.CASCADE)
+    email = models.ForeignKey(User_Data, on_delete=models.CASCADE)
