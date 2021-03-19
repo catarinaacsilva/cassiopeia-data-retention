@@ -14,7 +14,7 @@ class Receipt_Data(models.Model):
     receipt_timestamp = models.DateField()
     stay_id = models.OneToOneField(Stay_Data, on_delete=models.CASCADE, primary_key=True)
 
-# consent for one policy
+# policies and users
 class Policy_Consent(models.Model):
     email = models.EmailField(unique = True, null=False, primary_key=True)
     consent = models.BooleanField()
