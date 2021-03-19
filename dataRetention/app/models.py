@@ -13,4 +13,8 @@ class Receipt_Data(models.Model):
     id_receipt = models.CharField(unique=True, max_length = 100)
     receipt_timestamp = models.CharField(max_length = 100)
     stay_id = models.OneToOneField(Stay_Data, on_delete=models.CASCADE, primary_key=True)
-  
+
+class Policy_Consent(models.Model):
+    policy_id = models.CharField(unique=True, max_length = 100)
+    timestamp = models.CharField(max_length = 100)
+    policy = models.OneToOneField(Stay_Data, on_delete=models.CASCADE, primary_key=True)

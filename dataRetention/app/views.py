@@ -46,7 +46,7 @@ def receiptData():
     receipt_timestamp = parameters['receipt_timestamp']
 
     try:
-        Receipt_Data.objects.create(id_receipt)
+        Receipt_Data.objects.create(id_receipt=id_receipt, receipt_timestamp=receipt_timestamp)
     except:
         return Response('Cannot create the data stay record', status=status.HTTP_400_BAD_REQUEST)
 
