@@ -40,7 +40,7 @@ def stayData():
 '''
 @csrf_exempt
 @api_view(('POST',))
-def receiptData():
+def receiptInformation():
     parameters = json.loads(request.body)
     json_receipt = parameters['json_receipt']
     receipt_timestamp = json_receipt['Receipt Timestamp']
@@ -59,7 +59,7 @@ def receiptData():
 '''
 @csrf_exempt
 @api_view(('POST',))
-def consentData():
+def consentInformation():
     parameters = json.loads(request.body)
     policyid = parameters['policyid']
     consent = parameters['consent']

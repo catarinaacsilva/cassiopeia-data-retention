@@ -23,8 +23,8 @@ from app import views
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^stayData/', views.stayData, name='stayData'),
-    url(r'^receiptData/', views.receiptData, name='receiptData'),
-    url(r'^consent/', views.consentData, name='consentData'),
+    url(r'^receiptInformation/', views.receiptInformation, name='receiptInformation'),
+    url(r'^consentInformation/', views.consentInformation, name='consentInformation'),
 
     
 ]
