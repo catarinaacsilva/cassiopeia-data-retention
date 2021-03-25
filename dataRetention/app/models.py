@@ -20,3 +20,6 @@ class Policy_Consent(models.Model):
     consent = models.BooleanField()
     policy_id = models.CharField(unique=True, max_length = 100)
     timestamp = models.DateField()
+
+class User_Stay_Data(models.Model):
+    

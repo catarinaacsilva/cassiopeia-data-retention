@@ -80,7 +80,7 @@ def consentInformation():
     Correlate devices data and user
 '''
 @csrf_exempt
-@api_view(('POST'))
+@api_view(('POST')) #TODO: post or get
 def userData(request):
     parameters = json.loads(request.body)
     id_stay = parameters['id']
@@ -92,9 +92,35 @@ def userData(request):
     query = 'from(bucket:"cassiopeiainflux") |> range(start: dataIn, stop: dataOut)'
 
     result = settings.clientInflux.query_api().query(org='it', query=query)
-    results = []
+    results = [] #TODO se for para guardar os dados alterar para create na db
+
     for table in result:
         for record in table.records:
             results.append((record.get_value(), record.get_field()))
 
     #TODO: store results on database? or just to remove: delete to the influxdb
+
+
+'''
+    Remove user data from influxdb by stay
+'''
+@csrf_exempt
+@api_view(('POST')) # TODO: check if it is a post or get
+def removeDataUser(request):
+    parameters = json.loads(request.body)
+    id_stay = parameters['id']
+
+    try:
+        qs = Stay_Data.objects.get(id=id_stay)
+        dataIn = qs.datain
+        dataOut = qs.dataOut
+        try:
+            query = 'influx delete --bucket cassiopeiainflux --start 2020-03-01T00:00:00Z --stop 2020-11-14T00:00:00Z'
+            settings.clientInflux.query_api().query(org='it', query=query)
+        except:
+            return Response('Cannot remove the data', status=status.HTTP_400_BAD_REQUEST)
+    except:
+        return Response('ID stays does not exit', status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(status=status.HTTP_200_OK)
+
