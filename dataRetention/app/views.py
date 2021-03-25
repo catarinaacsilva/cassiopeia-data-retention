@@ -36,14 +36,15 @@ def stayData():
     return Response(status=status.HTTP_201_CREATED)
 
 '''
-    Receive receipt data from receipt generator
+    Receive receipt identification from receipt generator
 '''
 @csrf_exempt
 @api_view(('POST',))
 def receiptData():
     parameters = json.loads(request.body)
-    id_receipt = parameters['id_receipt']
-    receipt_timestamp = parameters['receipt_timestamp']
+    json_receipt = parameters['json_receipt']
+    receipt_timestamp = json_receipt['Receipt Timestamp']
+    id_receipt = json_receipt['Receipt ID']
 
     try:
         Receipt_Data.objects.create(id_receipt=id_receipt, receipt_timestamp=receipt_timestamp)
@@ -52,8 +53,9 @@ def receiptData():
 
     return Response(status=status.HTTP_201_CREATED)
 
+
 '''
-    Receive consent information from cassioepia
+    Receive consent information from cassiopia
 '''
 @csrf_exempt
 @api_view(('POST',))
@@ -62,7 +64,7 @@ def consentData():
     policyid = parameters['policyid']
     consent = parameters['consent']
     email = parameters['email']
-    timestamp = parameters['policyid']
+    timestamp = parameters['timestamp']
 
     try:
         Policy_Consent.objects.create(policyid=policyid, consent=consent, email=email, timestamp=timestamp)
