@@ -57,6 +57,35 @@ def receiptInformation():
 
 
 '''
+    Correlate user and receipt
+'''
+@csrf_exempt
+@api_view(('POST'))
+def userReceipt(request):
+    parameters = json.loads(request.body)
+    id_stay = parameters['id']
+
+    try:
+        qs = Stay_Data.objects.get(id=id_stay)
+        dataIn = qs.datain
+        dataOut = qs.dataOut
+        receipt_id_qs = Receipt_Data.objects.get(stay_id=id_stay)
+        receipt_id = receipt_id_qs.id_receipt
+        receipt_timestamp = receipt_id_qs.receipt_timestamp
+
+        if dataIn < receipt_timestamp and dataOut > receipt_timestamp:
+            #we can associate user and receipt
+
+
+    except:
+        return Response('ID stays does not exit', status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(status=status.HTTP_200_OK)
+
+
+
+
+'''
     Receive consent information from cassiopia
 '''
 @csrf_exempt
@@ -123,4 +152,3 @@ def removeDataUser(request):
         return Response('ID stays does not exit', status=status.HTTP_400_BAD_REQUEST)
 
     return Response(status=status.HTTP_200_OK)
-
