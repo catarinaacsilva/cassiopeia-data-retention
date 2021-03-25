@@ -8,6 +8,8 @@ from rest_framework.decorators import api_view
 
 from django.shortcuts import render
 
+from django.conf import settings
+
 logger = logging.getLogger(__name__)
 
 
@@ -72,3 +74,27 @@ def consentInformation():
         return Response('Cannot create the consent record', status=status.HTTP_400_BAD_REQUEST)
 
     return Response(status=status.HTTP_201_CREATED)
+
+
+'''
+    Correlate devices data and user
+'''
+@csrf_exempt
+@api_view(('POST'))
+def userData(request):
+    parameters = json.loads(request.body)
+    id_stay = parameters['id']
+
+    qs = Stay_Data.objects.get(id=id_stay)
+    dataIn = qs.datain
+    dataOut = qs.dataOut
+
+    query = 'from(bucket:"cassiopeiainflux") |> range(start: dataIn, stop: dataOut)'
+
+    result = settings.clientInflux.query_api().query(org='it', query=query)
+    results = []
+    for table in result:
+        for record in table.records:
+            results.append((record.get_value(), record.get_field()))
+
+    #TODO: store results on database? or just to remove: delete to the influxdb
