@@ -131,4 +131,4 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (os.path.join('static'),)
 
 
-clientInflux = InfluxDBClient(url="http://10.0.12.42:8086", token='admintoken123', org='it')
+clientInflux = InfluxDBClient(url="http://10.0.12.40:8086", token='admintoken123', org='it')

@@ -55,38 +55,8 @@ def receiptInformation():
 
     return Response(status=status.HTTP_201_CREATED)
 
-
 '''
-    Correlate user and receipt
-'''
-@csrf_exempt
-@api_view(('POST'))
-def userReceipt(request):
-    parameters = json.loads(request.body)
-    id_stay = parameters['id']
-
-    try:
-        qs = Stay_Data.objects.get(id=id_stay)
-        dataIn = qs.datain
-        dataOut = qs.dataOut
-        receipt_id_qs = Receipt_Data.objects.get(stay_id=id_stay)
-        receipt_id = receipt_id_qs.id_receipt
-        receipt_timestamp = receipt_id_qs.receipt_timestamp
-
-        if dataIn < receipt_timestamp and dataOut > receipt_timestamp:
-            #we can associate user and receipt
-
-
-    except:
-        return Response('ID stays does not exit', status=status.HTTP_400_BAD_REQUEST)
-
-    return Response(status=status.HTTP_200_OK)
-
-
-
-
-'''
-    Receive consent information from cassiopia
+    Receive consent information from cassiopeia
 '''
 @csrf_exempt
 @api_view(('POST',))
@@ -131,7 +101,7 @@ def userData(request):
 
 
 '''
-    Remove user data from influxdb by stay
+    Remove user data of the influxdb by stay
 '''
 @csrf_exempt
 @api_view(('POST')) # TODO: check if it is a post or get
@@ -139,12 +109,14 @@ def removeDataUser(request):
     parameters = json.loads(request.body)
     id_stay = parameters['id']
 
+    #TODO: pode receber o date in e o date out a partir do cassiopeia e assim saber qual a o id da estadia
+
     try:
         qs = Stay_Data.objects.get(id=id_stay)
-        dataIn = qs.datain
-        dataOut = qs.dataOut
+        dateIn = qs.datein
+        dateOut = qs.dateOut
         try:
-            query = 'influx delete --bucket cassiopeiainflux --start 2020-03-01T00:00:00Z --stop 2020-11-14T00:00:00Z'
+            query = 'influx delete --bucket cassiopeiainflux --start dateIn --stop dateOut'
             settings.clientInflux.query_api().query(org='it', query=query)
         except:
             return Response('Cannot remove the data', status=status.HTTP_400_BAD_REQUEST)
