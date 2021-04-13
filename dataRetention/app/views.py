@@ -97,8 +97,6 @@ def userData(request):
         for record in table.records:
             results.append((record.get_value(), record.get_field()))
 
-    #TODO: store results on database? or just to remove: delete to the influxdb
-
 
 '''
     Remove user data of the influxdb by stay
@@ -108,8 +106,6 @@ def userData(request):
 def removeDataUser(request):
     parameters = json.loads(request.body)
     id_stay = parameters['id']
-
-    #TODO: pode receber o date in e o date out a partir do cassiopeia e assim saber qual a o id da estadia
 
     try:
         qs = Stay_Data.objects.get(id=id_stay)
@@ -121,6 +117,37 @@ def removeDataUser(request):
         except:
             return Response('Cannot remove the data', status=status.HTTP_400_BAD_REQUEST)
     except:
-        return Response('ID stays does not exit', status=status.HTTP_400_BAD_REQUEST)
+        return Response('ID stay does not exit', status=status.HTTP_400_BAD_REQUEST)
 
     return Response(status=status.HTTP_200_OK)
+
+
+'''
+    Export personal data to a CSV
+'''
+@csrf_exempt
+@api_view(('GET')) # TODO: check if it is a post or get
+def exportCsv(request):
+    parameters = json.loads(request.body)
+    id_stay = parameters['id']
+
+    qs = Stay_Data.objects.get(id=id_stay)
+    dataIn = qs.datain
+    dataOut = qs.dataOut
+
+    query = 'from(bucket:"cassiopeiainflux") |> range(start: dataIn, stop: dataOut)'
+
+    result = settings.clientInflux.query_api().query(org='it', query=query)
+    results = []
+
+    for table in result:
+        for record in table.records:
+            results.append((record.get_value(), record.get_field()))
+
+    with open('data.csv', mode='w') as data_file:
+        data_writer = csv.writer(data_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        for i in results:
+            data_writer.writerow([results[i]])
+
+
+#TODO: listar tudo para o cassiopeia
