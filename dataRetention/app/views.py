@@ -150,4 +150,49 @@ def exportCsv(request):
             data_writer.writerow([results[i]])
 
 
-#TODO: listar tudo para o cassiopeia
+'''
+    List data based on the dateIn and dateOut
+'''
+@csrf_exempt
+@api_view(('GET',))
+def request_receipt(request):
+    datein = request.GET['datein']
+    dateout = request.GET['dateout']
+
+    try:
+        query = 'from(bucket:"cassiopeiainflux") |> range(start: dataIn, stop: dataOut)'
+        result = settings.clientInflux.query_api().query(org='it', query=query)
+        results = []
+
+        for table in result:
+            for record in table.records:
+                results.append((record.get_value(), record.get_field()))
+        return Response(results, status=status.HTTP_201_CREATED)
+    except:
+        return Response('Problem to return data', status=status.HTTP_400_BAD_REQUEST)
+    
+    return Response('Problem', status=status.HTTP_400_BAD_REQUEST)
+
+
+'''
+    List data based on the stayid
+'''
+@csrf_exempt
+@api_view(('GET',))
+def request_receipt(request):
+    stayid = request.GET['stayid']
+
+    try:
+        query = 'from(bucket:"cassiopeiainflux") |> filter(fn: (r) =>r.stayid == stayid'
+        result = settings.clientInflux.query_api().query(org='it', query=query)
+        results = []
+
+        for table in result:
+            for record in table.records:
+                results.append((record.get_value(), record.get_field()))
+        return Response(results, status=status.HTTP_201_CREATED)
+    except:
+        return Response('Problem to return data', status=status.HTTP_400_BAD_REQUEST)
+    
+    return Response('Problem', status=status.HTTP_400_BAD_REQUEST)
+
