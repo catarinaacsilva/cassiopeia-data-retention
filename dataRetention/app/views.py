@@ -135,19 +135,25 @@ def exportCsv(request):
     dataIn = qs.datain
     dataOut = qs.dataOut
 
-    query = 'from(bucket:"cassiopeiainflux") |> range(start: dataIn, stop: dataOut)'
+    try:
 
-    result = settings.clientInflux.query_api().query(org='it', query=query)
-    results = []
+        query = 'from(bucket:"cassiopeiainflux") |> range(start: dataIn, stop: dataOut)'
 
-    for table in result:
-        for record in table.records:
-            results.append((record.get_value(), record.get_field()))
+        result = settings.clientInflux.query_api().query(org='it', query=query)
+        results = []
 
-    with open('data.csv', mode='w') as data_file:
-        data_writer = csv.writer(data_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        for i in results:
-            data_writer.writerow([results[i]])
+        for table in result:
+            for record in table.records:
+                results.append((record.get_value(), record.get_field()))
+
+        with open('data.csv', mode='w') as data_file:
+            data_writer = csv.writer(data_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            for i in results:
+                data_writer.writerow([results[i]])
+        return Response('Ok', status=status.HTTP_201_CREATED)
+    except:
+        return Response('Problem with csv', status=status.HTTP_400_BAD_REQUEST)
+    return Response('Problem', status=status.HTTP_400_BAD_REQUEST)
 
 
 '''
