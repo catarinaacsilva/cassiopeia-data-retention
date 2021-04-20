@@ -1,14 +1,18 @@
 import json
 import logging
 import requests
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view
+from django.db import transaction
 
 from django.shortcuts import render
 
 from django.conf import settings
+
+from .models import Stay_Data, User
 
 logger = logging.getLogger(__name__)
 
@@ -24,18 +28,61 @@ def index(request):
 '''
 @csrf_exempt
 @api_view(('POST',))
-def stayData():
+def stayData(request):
     parameters = json.loads(request.body)
     datein = parameters['datein']
     dateout = parameters['dateout']
     email = parameters['email']
 
     try:
-        Stay_Data.objects.create(email=email, datein=datein, dateout=dateout)
-    except:
-        return Response('Cannot create the data stay record', status=status.HTTP_400_BAD_REQUEST)
+        with transaction.atomic():
+            if not User.objects.filter(email=email).exists():
+                User.objects.create(email=email)
+            user = User.objects.get(email=email)
+            Stay_Data.objects.create(email=user, datein=datein, dateout=dateout)
+    except Exception as e:
+        return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
 
     return Response(status=status.HTTP_201_CREATED)
+
+'''
+    List all the stays
+'''
+@csrf_exempt
+@api_view(('GET',))
+def allStays(request):
+    email = request.GET['email']
+
+    stay_info = Stay_Data.objects.filter(email=email)
+    response = []
+    for stay in stay_info:
+        response.append({'id':stay.id, 'dateIn': stay.datein, 'dateOut': stay.dateout})
+
+    return JsonResponse({'email': email, 'stays':response}, status=status.HTTP_201_CREATED)
+
+
+'''
+    Remove stay: For debug only
+'''
+@csrf_exempt
+@api_view(('POST',))
+def removeStay(request):
+    parameters = json.loads(request.body)
+    datein = parameters['datein']
+    dateout = parameters['dateout']
+    email = parameters['email']
+
+    try:
+        with transaction.atomic():
+            user = User.objects.get(email=email)
+            Stay_Data.objects.filter(email=user, datein=datein, dateout=dateout).delete()
+    except Exception as e:
+        return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(status=status.HTTP_201_CREATED)
+
+
+
 
 '''
     Receive receipt identification from receipt generator
@@ -75,11 +122,12 @@ def consentInformation():
     return Response(status=status.HTTP_201_CREATED)
 
 
+
 '''
     Correlate devices data and user
 '''
 @csrf_exempt
-@api_view(('POST')) #TODO: post or get
+@api_view(('POST',)) #TODO: post or get
 def userData(request):
     parameters = json.loads(request.body)
     id_stay = parameters['id']
@@ -102,7 +150,7 @@ def userData(request):
     Remove user data of the influxdb by stay
 '''
 @csrf_exempt
-@api_view(('POST')) # TODO: check if it is a post or get
+@api_view(('POST',)) # TODO: check if it is a post or get
 def removeDataUser(request):
     parameters = json.loads(request.body)
     id_stay = parameters['id']
@@ -121,12 +169,11 @@ def removeDataUser(request):
 
     return Response(status=status.HTTP_200_OK)
 
-
 '''
     Export personal data to a CSV
 '''
 @csrf_exempt
-@api_view(('GET')) # TODO: check if it is a post or get
+@api_view(('GET',)) # TODO: check if it is a post or get
 def exportCsv(request):
     parameters = json.loads(request.body)
     id_stay = parameters['id']
@@ -173,7 +220,7 @@ def request_receipt(request):
         for table in result:
             for record in table.records:
                 results.append((record.get_value(), record.get_field()))
-        return Response(results, status=status.HTTP_201_CREATED)
+        return JsonResponse({'data':results}, status=status.HTTP_201_CREATED)
     except:
         return Response('Problem to return data', status=status.HTTP_400_BAD_REQUEST)
     
@@ -187,18 +234,59 @@ def request_receipt(request):
 @api_view(('GET',))
 def request_receipt(request):
     stayid = request.GET['stayid']
+    email = request.GET['email']
 
     try:
-        query = 'from(bucket:"cassiopeiainflux") |> filter(fn: (r) =>r.stayid == stayid'
+        query = 'from(bucket:"cassiopeiainflux") |> filter(fn: (r) =>r.stayid == stayid and r.email == email'
         result = settings.clientInflux.query_api().query(org='it', query=query)
         results = []
 
         for table in result:
             for record in table.records:
                 results.append((record.get_value(), record.get_field()))
-        return Response(results, status=status.HTTP_201_CREATED)
+        return JsonResponse({'data':results}, status=status.HTTP_201_CREATED)
     except:
         return Response('Problem to return data', status=status.HTTP_400_BAD_REQUEST)
     
     return Response('Problem', status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+'''
+    List all the receipts of the user
+'''
+@csrf_exempt
+@api_view(('GET',))
+def request_receipt(request):
+    stayid = request.GET['stayid']
+    email = request.GET['email']
+
+    idReceipt = Stay_Data.objects.filter(id = stayid, email = email)
+
+    #pedir os recibos ao receipt generator quando isso estiver alterado!
+
+'''
+    Return the state of the receipt
+'''
+
+
+'''
+    Return active receipts
+'''
+
+
+'''
+    Return revoked receipts
+'''
+
+
+'''
+    Revoke a receipt
+'''
+
+
+'''
+    Remove a receipt after revoked ??
+'''
 

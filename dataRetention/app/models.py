@@ -9,6 +9,11 @@ class Stay_Data(models.Model):
     datein = models.DateField()
     dateout = models.DateField()
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['email', 'datein', 'dateout'], name='unique_stay')
+        ]
+
 class Receipt_Data(models.Model):
     id_receipt = models.CharField(unique=True, max_length = 100)
     receipt_timestamp = models.DateField()

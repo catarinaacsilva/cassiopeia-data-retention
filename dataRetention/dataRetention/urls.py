@@ -22,9 +22,11 @@ from app import views
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),
-    url(r'^stayData/', views.stayData, name='stayData'),
-    url(r'^receiptInformation/', views.receiptInformation, name='receiptInformation'),
-    url(r'^consentInformation/', views.consentInformation, name='consentInformation'),
+    url(r'^stayData', views.stayData, name='stayData'),
+    url(r'^allStays', views.allStays, name='allStays'),
+    url(r'^removeStay', views.removeStay, name='removeStay'),
+    url(r'^receiptInformation', views.receiptInformation, name='receiptInformation'),
+    url(r'^consentInformation', views.consentInformation, name='consentInformation'),
 
     
 ]
