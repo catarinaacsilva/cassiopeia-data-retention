@@ -25,6 +25,8 @@ urlpatterns = [
     url(r'^stayData', views.stayData, name='stayData'),
     url(r'^allStays', views.allStays, name='allStays'),
     url(r'^removeStay', views.removeStay, name='removeStay'),
+    url(r'^consentInformation', views.consentInformation, name='consentInformation'),
+    url(r'^listConsent', views.listConsent, name='listConsent'),
     url(r'^receiptInformation', views.receiptInformation, name='receiptInformation'),
     url(r'^consentInformation', views.consentInformation, name='consentInformation'),
 

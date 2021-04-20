@@ -12,7 +12,7 @@ from django.shortcuts import render
 
 from django.conf import settings
 
-from .models import Stay_Data, User
+from .models import Stay_Data, User, Policy_Consent
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +82,50 @@ def removeStay(request):
     return Response(status=status.HTTP_201_CREATED)
 
 
+'''
+    Receive consent information from cassiopeia
+'''
+@csrf_exempt
+@api_view(('POST',))
+def consentInformation(request):
+    parameters = json.loads(request.body)
+    policyid = parameters['policyid']
+    consent = parameters['consent']
+    email = parameters['email']
+    timestamp = parameters['timestamp']
+
+    try:
+        with transaction.atomic():
+            if not User.objects.filter(email=email).exists():
+                return Response('The user does not exist in the system', status=status.HTTP_400_BAD_REQUEST)
+            Policy_Consent.objects.create(policy_id=policyid, consent=consent, email=email, timestamp=timestamp)
+    except Exception as e:
+        return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(status=status.HTTP_201_CREATED)
+
+
+'''
+    List consent information
+'''
+@csrf_exempt
+@api_view(('GET',))
+def listConsent(request):
+    email = request.GET['email']
+
+    consent_info = Policy_Consent.objects.filter(email=email)
+    response = []
+    for c in consent_info:
+        response.append({'policyid':c.policy_id, 'consent': c.consent, 'timestamp': c.timestamp})
+
+    return JsonResponse({'email': email, 'consents':response}, status=status.HTTP_201_CREATED)
+
+
+'''
+TESTED
+##################################################################################################
+NOT TESTED
+'''
 
 
 '''
@@ -102,24 +146,8 @@ def receiptInformation():
 
     return Response(status=status.HTTP_201_CREATED)
 
-'''
-    Receive consent information from cassiopeia
-'''
-@csrf_exempt
-@api_view(('POST',))
-def consentInformation():
-    parameters = json.loads(request.body)
-    policyid = parameters['policyid']
-    consent = parameters['consent']
-    email = parameters['email']
-    timestamp = parameters['timestamp']
 
-    try:
-        Policy_Consent.objects.create(policyid=policyid, consent=consent, email=email, timestamp=timestamp)
-    except:
-        return Response('Cannot create the consent record', status=status.HTTP_400_BAD_REQUEST)
 
-    return Response(status=status.HTTP_201_CREATED)
 
 
 
