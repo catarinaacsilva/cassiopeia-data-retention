@@ -19,7 +19,7 @@ class Receipt_Data(models.Model):
     receipt_timestamp = models.DateField()
     stay_id = models.OneToOneField(Stay_Data, on_delete=models.CASCADE, primary_key=True)
 
-# policies and users
+
 class Policy_Consent(models.Model):
     #email = models.ForeignKey(User, on_delete=models.CASCADE)
     stay_id = models.OneToOneField(Stay_Data, on_delete=models.CASCADE)

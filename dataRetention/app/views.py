@@ -117,13 +117,17 @@ def consentInformation(request):
     parameters = json.loads(request.body)
     policyid = parameters['policyid']
     consent = parameters['consent']
-    email = parameters['email']
     timestamp = parameters['timestamp']
+    stay_id = parameters['stay_id']
 
     try:
-        stay = Stay_Data.objects.get(email=email)
-        with transaction.atomic():
-            Policy_Consent.objects.create(policy_id=policyid, consent=consent, stay_id=stay, timestamp=timestamp)
+        stay = Stay_Data.objects.get(pk=stay_id)
+        if stay:
+            with transaction.atomic():
+                Policy_Consent.objects.create(policy_id=policyid, consent=consent, stay_id=stay, timestamp=timestamp)
+        else:
+            return Response(f'Stay id ({stay_id}) does not exist', status=status.HTTP_400_BAD_REQUEST)
+
     except Exception as e:
         return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
 
@@ -136,14 +140,14 @@ def consentInformation(request):
 @csrf_exempt
 @api_view(('GET',))
 def listConsent(request):
-    email = request.GET['email']
+    stay_id = request.GET['stay_id']
 
-    consent_info = Policy_Consent.objects.filter(email=email)
+    consent_info = Policy_Consent.objects.filter(stay_id=stay_id)
     response = []
     for c in consent_info:
         response.append({'policyid':c.policy_id, 'consent': c.consent, 'timestamp': c.timestamp})
 
-    return JsonResponse({'email': email, 'consents':response}, status=status.HTTP_201_CREATED)
+    return JsonResponse({'stay_id': stay_id, 'consents':response}, status=status.HTTP_201_CREATED)
 
 
 '''

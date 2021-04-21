@@ -25,21 +25,23 @@ echo -e "List stays"
 curl -X GET http://localhost:8000/allStays?email=myemail@email.com | jq -s .
 
 
-# Test consent policy
+# Test consent policy - Add new stay to test the policy consent function
 
 echo -e "Add new stay to test the policy consent function"
-curl -d "{\"datein\": \"2021-04-20\", \"dateout\": \"2021-04-22\", \"email\":\"myemail@email.com\"}" \
+content=$(curl -d "{\"datein\": \"2021-04-20\", \"dateout\": \"2021-04-22\", \"email\":\"myemail@email.com\"}" \
 -H "Content-Type: application/json" \
-http://localhost:8000/stayData
+http://localhost:8000/stayData) 
+stay_id=$( jq -r  '.stay_id' <<< "${content}" ) 
+echo "${stay_id}"
 
 # Insert policy consent
 
 echo -e "Insert policy consent"
-curl -d "{\"policyid\": \"14\", \"consent\": \"True\", \"email\":\"myemail@email.com\", \"timestamp\":\"2021-04-22\"}" \
+curl -d "{\"policyid\": 14, \"consent\": true, \"timestamp\":\"2021-04-22\", \"stay_id\": $stay_id}" \
 -H "Content-Type: application/json" \
 http://localhost:8000/consentInformation
 
 
-curl -d "{\"policyid\": \"14\", \"consent\": \"True\", \"email\":\"myemail@email.com\", \"timestamp\":\"2021-05-22\"}" \
--H "Content-Type: application/json" \
-http://localhost:8000/consentInformation
+# List policy consent
+echo -e "List policy consent"
+curl -X GET http://localhost:8000/listConsent?stay_id=$stay_id | jq -s .
