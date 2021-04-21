@@ -121,13 +121,12 @@ def consentInformation(request):
     stay_id = parameters['stay_id']
 
     try:
-        stay = Stay_Data.objects.get(pk=stay_id)
-        if stay:
-            with transaction.atomic():
+        with transaction.atomic():
+            stay = Stay_Data.objects.get(pk=stay_id)
+            if stay:
                 Policy_Consent.objects.create(policy_id=policyid, consent=consent, stay_id=stay, timestamp=timestamp)
-        else:
-            return Response(f'Stay id ({stay_id}) does not exist', status=status.HTTP_400_BAD_REQUEST)
-
+            else:
+                return Response(f'Stay id ({stay_id}) does not exist', status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
 
@@ -148,6 +147,7 @@ def listConsent(request):
         response.append({'policyid':c.policy_id, 'consent': c.consent, 'timestamp': c.timestamp})
 
     return JsonResponse({'stay_id': stay_id, 'consents':response}, status=status.HTTP_201_CREATED)
+
 
 
 '''
@@ -174,9 +174,6 @@ def receiptInformation():
         return Response('Cannot create the data stay record', status=status.HTTP_400_BAD_REQUEST)
 
     return Response(status=status.HTTP_201_CREATED)
-
-
-
 
 
 
