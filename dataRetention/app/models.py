@@ -21,7 +21,8 @@ class Receipt_Data(models.Model):
 
 # policies and users
 class Policy_Consent(models.Model):
-    email = models.EmailField(unique = True, null=False, primary_key=True)
+    #email = models.ForeignKey(User, on_delete=models.CASCADE)
+    stay_id = models.OneToOneField(Stay_Data, on_delete=models.CASCADE)
     consent = models.BooleanField()
-    policy_id = models.CharField(unique=True, max_length = 100)
+    policy_id = models.CharField(unique=False, max_length = 100)
     timestamp = models.DateField()

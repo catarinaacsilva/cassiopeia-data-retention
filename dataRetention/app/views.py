@@ -35,15 +35,41 @@ def stayData(request):
     email = parameters['email']
 
     try:
-        with transaction.atomic():
-            if not User.objects.filter(email=email).exists():
-                User.objects.create(email=email)
-            user = User.objects.get(email=email)
-            Stay_Data.objects.create(email=user, datein=datein, dateout=dateout)
+        # check if it exists
+        qs = Stay_Data.objects.filter(email=email, datein=datein, dateout=dateout)
+        if not qs.exists():
+            with transaction.atomic():
+                if not User.objects.filter(email=email).exists():
+                    User.objects.create(email=email)
+                user = User.objects.get(email=email)
+                stay = Stay_Data.objects.create(email=user, datein=datein, dateout=dateout)
+        else:
+            stay = qs.first()
+
+    except Exception as e:
+        return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
+    
+    print({'stay_id': stay.pk})
+    return JsonResponse({'stay_id': int(stay.pk)}, status=status.HTTP_201_CREATED)
+
+'''
+    Send the stay id to cassiopeia
+'''
+@csrf_exempt
+@api_view(('GET',))
+def getStayId(request):
+    email = request.GET['email']
+    datein = request.GET['datein']
+    dateout = request.GET['dateout']
+
+    try:
+        qs = Stay_Data.objects.filter(email=email, datein=datein, dateout=dateout)
+        stay = qs.first()
     except Exception as e:
         return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
 
-    return Response(status=status.HTTP_201_CREATED)
+    return JsonResponse({'email': email, 'datein':datein, 'dateout':dateout, 'stay_id':int(stay.pk)}, status=status.HTTP_201_CREATED)
+
 
 '''
     List all the stays
@@ -95,10 +121,9 @@ def consentInformation(request):
     timestamp = parameters['timestamp']
 
     try:
+        stay = Stay_Data.objects.get(email=email)
         with transaction.atomic():
-            if not User.objects.filter(email=email).exists():
-                return Response('The user does not exist in the system', status=status.HTTP_400_BAD_REQUEST)
-            Policy_Consent.objects.create(policy_id=policyid, consent=consent, email=email, timestamp=timestamp)
+            Policy_Consent.objects.create(policy_id=policyid, consent=consent, stay_id=stay, timestamp=timestamp)
     except Exception as e:
         return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
 

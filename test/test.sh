@@ -1,34 +1,45 @@
 #!/usr/bin/env bash
 
 # Insert stay
+echo -e "Insert Stay "
+curl -s -d "{\"datein\": \"2021-04-20\", \"dateout\": \"2021-04-22\", \"email\":\"myemail@email.com\"}" \
+-H "Content-Type: application/json" http://localhost:8000/stayData | jq .
 
-curl -d "{\"datein\": \"2021-04-20\", \"dateout\": \"2021-04-22\", \"email\":\"myemail@email.com\"}" \
--H "Content-Type: application/json" \
-http://localhost:8000/stayData
+# Return the stayID
+echo -e "Return the stayID "
+curl -s -X GET "http://localhost:8000/getStayId?email=myemail@email.com&datein=2021-04-20&dateout=2021-04-22" | jq .
 
 #List stays
-
-curl -X GET http://localhost:8000/allStays?email=myemail@email.com | jq .
+echo -e "List stays"
+curl -s -X GET http://localhost:8000/allStays?email=myemail@email.com | jq .
 
 # Remove stay
-
+echo -e "Remove stay"
 curl -d "{\"datein\": \"2021-04-20\", \"dateout\": \"2021-04-22\", \"email\":\"myemail@email.com\"}" \
 -H "Content-Type: application/json" \
 http://localhost:8000/removeStay
 
 
 # List stays
+echo -e "List stays"
+curl -X GET http://localhost:8000/allStays?email=myemail@email.com | jq -s .
 
-curl -X GET http://localhost:8000/allStays?email=myemail@email.com | jq .
 
+# Test consent policy
 
-# Store information about consent information
+echo -e "Add new stay to test the policy consent function"
+curl -d "{\"datein\": \"2021-04-20\", \"dateout\": \"2021-04-22\", \"email\":\"myemail@email.com\"}" \
+-H "Content-Type: application/json" \
+http://localhost:8000/stayData
 
-curl -d "{\"policyid\": \"14\", \"consent\": \"True\", \"email\":\"myemail@email.com\", \"timestamp\": \"2021-04-20\"}" \
+# Insert policy consent
+
+echo -e "Insert policy consent"
+curl -d "{\"policyid\": \"14\", \"consent\": \"True\", \"email\":\"myemail@email.com\", \"timestamp\":\"2021-04-22\"}" \
 -H "Content-Type: application/json" \
 http://localhost:8000/consentInformation
 
 
-# List consent information
-
-curl -X GET http://localhost:8000/listConsent?email=myemail@email.com | jq .
+curl -d "{\"policyid\": \"14\", \"consent\": \"True\", \"email\":\"myemail@email.com\", \"timestamp\":\"2021-05-22\"}" \
+-H "Content-Type: application/json" \
+http://localhost:8000/consentInformation
