@@ -28,8 +28,6 @@ urlpatterns = [
     url(r'^removeStay', views.removeStay, name='removeStay'),
     url(r'^consentInformation', views.consentInformation, name='consentInformation'),
     url(r'^listConsent', views.listConsent, name='listConsent'),
-    url(r'^receiptInformation', views.receiptInformation, name='receiptInformation'),
-    url(r'^consentInformation', views.consentInformation, name='consentInformation'),
+    url(r'^userData', views.userData, name='userData'),
 
-    
 ]

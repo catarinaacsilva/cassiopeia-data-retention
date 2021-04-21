@@ -10,6 +10,8 @@ from django.db import transaction
 
 from django.shortcuts import render
 
+from influxdb_client import InfluxDBClient
+
 from django.conf import settings
 
 from .models import Stay_Data, User, Policy_Consent
@@ -22,6 +24,16 @@ logger = logging.getLogger(__name__)
 '''
 def index(request):
     return render(request, 'index.html')
+
+'''
+    Returns an ``InfluxDBClient`` instance.
+'''
+def get_influxdb_client():
+    client = InfluxDBClient(
+        url = settings.INFLUXDB_URL,
+        token = settings.INFLUXDB_TOKEN,
+        org = settings.INFLUXDB_ORG)
+    return client
 
 '''
     Receive data stay from cassiopeia
@@ -149,6 +161,35 @@ def listConsent(request):
     return JsonResponse({'stay_id': stay_id, 'consents':response}, status=status.HTTP_201_CREATED)
 
 
+'''
+    Correlate devices data and user
+'''
+@csrf_exempt
+@api_view(('GET',))
+def userData(request):
+    stay_id = request.GET['stay_id']
+    email = request.GET['email']
+
+    try:
+        qs = Stay_Data.objects.get(id=stay_id)
+        dataIn = qs.datein
+        dataOut = qs.dateout
+
+        query = 'from(bucket:"cassiopeiainflux") |> range(start: dataIn, stop: dataOut)'
+
+        client = get_influxdb_client()
+        result = client.query_api().query(org='it', query=query)
+        results = []
+
+        for table in result:
+            for record in table.records:
+                results.append((record.get_value(), record.get_field()))
+    except Exception as e:
+        return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
+    
+    return JsonResponse({'email': email, 'data':results}, status=status.HTTP_201_CREATED) 
+
+
 
 '''
 TESTED
@@ -175,29 +216,6 @@ def receiptInformation():
 
     return Response(status=status.HTTP_201_CREATED)
 
-
-
-'''
-    Correlate devices data and user
-'''
-@csrf_exempt
-@api_view(('POST',)) #TODO: post or get
-def userData(request):
-    parameters = json.loads(request.body)
-    id_stay = parameters['id']
-
-    qs = Stay_Data.objects.get(id=id_stay)
-    dataIn = qs.datain
-    dataOut = qs.dataOut
-
-    query = 'from(bucket:"cassiopeiainflux") |> range(start: dataIn, stop: dataOut)'
-
-    result = settings.clientInflux.query_api().query(org='it', query=query)
-    results = [] #TODO se for para guardar os dados alterar para create na db
-
-    for table in result:
-        for record in table.records:
-            results.append((record.get_value(), record.get_field()))
 
 
 '''

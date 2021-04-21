@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 import os
 from .secrets import *
-from influxdb_client import InfluxDBClient
 
 from pathlib import Path
 
@@ -132,4 +131,8 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (os.path.join('static'),)
 
 
-clientInflux = InfluxDBClient(url="http://10.0.12.40:8086", token='admintoken123', org='it')
+#clientInflux = InfluxDBClient(url="http://10.0.12.40:8086", token='admintoken123', org='it')
+
+INFLUXDB_URL = 'http://10.0.12.40:8086'
+INFLUXDB_TOKEN = 'admintoken123'
+INFLUXDB_ORG = 'it'
