@@ -1,7 +1,9 @@
 import json
+import csv
 import logging
 import requests
 from django.http import JsonResponse
+from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
 from rest_framework import status
@@ -175,7 +177,7 @@ def userData(request):
         dataIn = qs.datein
         dataOut = qs.dateout
 
-        query = 'from(bucket:"cassiopeiainflux") |> range(start: dataIn, stop: dataOut)'
+        query = f'from(bucket:"cassiopeiainflux") |> range(start: {dataIn}, stop: {dataOut})'
 
         client = get_influxdb_client()
         result = client.query_api().query(org='it', query=query)
@@ -188,6 +190,37 @@ def userData(request):
         return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
     
     return JsonResponse({'email': email, 'data':results}, status=status.HTTP_201_CREATED) 
+
+
+'''
+    Export personal data to a CSV
+'''
+@csrf_exempt
+@api_view(('GET',))
+def exportCsv(request):
+    stay_id = request.GET['stay_id']
+
+    try:
+        qs = Stay_Data.objects.get(id=stay_id)
+        dataIn = qs.datein
+        dataOut = qs.dateout
+
+        query = f'from(bucket:"cassiopeiainflux") |> range(start: {dataIn}, stop: {dataOut})'
+        
+        client = get_influxdb_client()
+        result = client.query_api().query(org='it', query=query)
+        
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="export.csv"'
+
+        writer = csv.writer(response)
+        for table in result:
+            for record in table.records:
+                writer.writerow([record['_time'], record.get_measurement(), record['entity_id'], record.get_value()])
+        return response
+    except Exception as e:
+        return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
+    return Response('Problem', status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -241,38 +274,6 @@ def removeDataUser(request):
 
     return Response(status=status.HTTP_200_OK)
 
-'''
-    Export personal data to a CSV
-'''
-@csrf_exempt
-@api_view(('GET',)) # TODO: check if it is a post or get
-def exportCsv(request):
-    parameters = json.loads(request.body)
-    id_stay = parameters['id']
-
-    qs = Stay_Data.objects.get(id=id_stay)
-    dataIn = qs.datain
-    dataOut = qs.dataOut
-
-    try:
-
-        query = 'from(bucket:"cassiopeiainflux") |> range(start: dataIn, stop: dataOut)'
-
-        result = settings.clientInflux.query_api().query(org='it', query=query)
-        results = []
-
-        for table in result:
-            for record in table.records:
-                results.append((record.get_value(), record.get_field()))
-
-        with open('data.csv', mode='w') as data_file:
-            data_writer = csv.writer(data_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-            for i in results:
-                data_writer.writerow([results[i]])
-        return Response('Ok', status=status.HTTP_201_CREATED)
-    except:
-        return Response('Problem with csv', status=status.HTTP_400_BAD_REQUEST)
-    return Response('Problem', status=status.HTTP_400_BAD_REQUEST)
 
 
 '''

@@ -57,7 +57,7 @@ curl -X GET http://localhost:8000/listConsent?stay_id=$stay_id | jq -s .
 # Add new user to test next function
 
 echo -e "Add new stay to test the policy consent function"
-content=$(curl -d "{\"datein\": \"2021-04-21\", \"dateout\": \"2021-04-21\", \"email\":\"testinflux@email.com\"}" \
+content=$(curl -d "{\"datein\": \"2021-04-21\", \"dateout\": \"2021-04-22\", \"email\":\"testinflux@email.com\"}" \
 -H "Content-Type: application/json" \
 http://localhost:8000/stayData) 
 stay_id=$( jq -r  '.stay_id' <<< "${content}" ) 
@@ -67,3 +67,9 @@ echo "${stay_id}"
 
 echo -e "Correlate devices data and user"
 curl -s -X GET "http://localhost:8000/userData?email=testinflux@email.com&stay_id=$stay_id" | jq .
+
+
+# Export data to csv
+
+echo -e "Export data to csv"
+curl -s -X GET "http://localhost:8000/exportCsv?stay_id=$stay_id" > data.csv
