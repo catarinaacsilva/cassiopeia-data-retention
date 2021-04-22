@@ -174,10 +174,10 @@ def userData(request):
 
     try:
         qs = Stay_Data.objects.get(id=stay_id)
-        dataIn = qs.datein
-        dataOut = qs.dateout
+        dateIn = qs.datein
+        dateOut = qs.dateout
 
-        query = f'from(bucket:"cassiopeiainflux") |> range(start: {dataIn}, stop: {dataOut})'
+        query = f'from(bucket:"cassiopeiainflux") |> range(start: {dateIn}, stop: {dateOut})'
 
         client = get_influxdb_client()
         result = client.query_api().query(org='it', query=query)
@@ -202,10 +202,10 @@ def exportCsv(request):
 
     try:
         qs = Stay_Data.objects.get(id=stay_id)
-        dataIn = qs.datein
-        dataOut = qs.dateout
+        dateIn = qs.datein
+        dateOut = qs.dateout
 
-        query = f'from(bucket:"cassiopeiainflux") |> range(start: {dataIn}, stop: {dataOut})'
+        query = f'from(bucket:"cassiopeiainflux") |> range(start: {dateIn}, stop: {dateOut})'
         
         client = get_influxdb_client()
         result = client.query_api().query(org='it', query=query)
@@ -234,10 +234,10 @@ def entityData(request):
 
     try:
         qs = Stay_Data.objects.get(id=stay_id)
-        dataIn = qs.datein
-        dataOut = qs.dateout
+        dateIn = qs.datein
+        dateOut = qs.dateout
 
-        query = f'from(bucket:"cassiopeiainflux") |> range(start: {dataIn}, stop: {dataOut})'
+        query = f'from(bucket:"cassiopeiainflux") |> range(start: {dateIn}, stop: {dateOut})'
 
         client = get_influxdb_client()
         result = client.query_api().query(org='it', query=query)
@@ -254,6 +254,29 @@ def entityData(request):
     return JsonResponse({'email': email, 'entities':results}, status=status.HTTP_201_CREATED)
 
 
+'''
+    Remove user data of the influxdb by stay and the email
+'''
+@csrf_exempt
+@api_view(('GET',))
+def removeDataUser(request):
+    stay_id = request.GET['stay_id']
+
+    try:
+        qs = Stay_Data.objects.get(id=stay_id)
+        dateIn = qs.datein
+        dateOut = qs.dateOut
+        
+        query = f'influx delete --bucket cassiopeiainflux --start {dateIn} --stop {dateOut}'
+        client = get_influxdb_client()
+        client.query_api().query(org='it', query=query)
+       
+    except Exception as e:
+        return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
+
+    return Response('Data Removed', status=status.HTTP_200_OK)
+
+# testar esta ultima função
 
 '''
 TESTED
@@ -282,77 +305,9 @@ def receiptInformation():
 
 
 
-'''
-    Remove user data of the influxdb by stay
-'''
-@csrf_exempt
-@api_view(('POST',)) # TODO: check if it is a post or get
-def removeDataUser(request):
-    parameters = json.loads(request.body)
-    id_stay = parameters['id']
-
-    try:
-        qs = Stay_Data.objects.get(id=id_stay)
-        dateIn = qs.datein
-        dateOut = qs.dateOut
-        try:
-            query = 'influx delete --bucket cassiopeiainflux --start dateIn --stop dateOut'
-            settings.clientInflux.query_api().query(org='it', query=query)
-        except:
-            return Response('Cannot remove the data', status=status.HTTP_400_BAD_REQUEST)
-    except:
-        return Response('ID stay does not exit', status=status.HTTP_400_BAD_REQUEST)
-
-    return Response(status=status.HTTP_200_OK)
 
 
 
-'''
-    List data based on the dateIn and dateOut
-'''
-@csrf_exempt
-@api_view(('GET',))
-def request_receipt(request):
-    datein = request.GET['datein']
-    dateout = request.GET['dateout']
-
-    try:
-        query = 'from(bucket:"cassiopeiainflux") |> range(start: dataIn, stop: dataOut)'
-        result = settings.clientInflux.query_api().query(org='it', query=query)
-        results = []
-
-        for table in result:
-            for record in table.records:
-                results.append((record.get_value(), record.get_field()))
-        return JsonResponse({'data':results}, status=status.HTTP_201_CREATED)
-    except:
-        return Response('Problem to return data', status=status.HTTP_400_BAD_REQUEST)
-    
-    return Response('Problem', status=status.HTTP_400_BAD_REQUEST)
-
-
-'''
-    List data based on the stayid
-'''
-@csrf_exempt
-@api_view(('GET',))
-def request_receipt(request):
-    stayid = request.GET['stayid']
-    email = request.GET['email']
-
-    try:
-        query = 'from(bucket:"cassiopeiainflux") |> filter(fn: (r) =>r.stayid == stayid and r.email == email'
-        result = settings.clientInflux.query_api().query(org='it', query=query)
-        results = []
-
-        for table in result:
-            for record in table.records:
-                results.append((record.get_value(), record.get_field()))
-        return JsonResponse({'data':results}, status=status.HTTP_201_CREATED)
-    except:
-        return Response('Problem to return data', status=status.HTTP_400_BAD_REQUEST)
-    
-    return Response('Problem', status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -360,15 +315,6 @@ def request_receipt(request):
 '''
     List all the receipts of the user
 '''
-@csrf_exempt
-@api_view(('GET',))
-def request_receipt(request):
-    stayid = request.GET['stayid']
-    email = request.GET['email']
-
-    idReceipt = Stay_Data.objects.filter(id = stayid, email = email)
-
-    #pedir os recibos ao receipt generator quando isso estiver alterado!
 
 '''
     Return the state of the receipt

@@ -79,3 +79,9 @@ curl -s -X GET "http://localhost:8000/exportCsv?stay_id=$stay_id" > data.csv
 
 echo -e "Return entity ids of the sensors that collected data"
 curl -s -X GET "http://localhost:8000/entityData?email=testinflux@email.com&stay_id=$stay_id"
+
+
+# Remove user data of the influxdb by stay and the email
+
+echo -e "Remove user data of the influxdb by stay and the email"
+curl -s -X GET "http://localhost:8000/removeDataUser?stay_id=$stay_id"
