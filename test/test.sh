@@ -73,3 +73,9 @@ curl -s -X GET "http://localhost:8000/userData?email=testinflux@email.com&stay_i
 
 echo -e "Export data to csv"
 curl -s -X GET "http://localhost:8000/exportCsv?stay_id=$stay_id" > data.csv
+
+
+# Return entity ids od the sensors that collected data
+
+echo -e "Return entity ids of the sensors that collected data"
+curl -s -X GET "http://localhost:8000/entityData?email=testinflux@email.com&stay_id=$stay_id"

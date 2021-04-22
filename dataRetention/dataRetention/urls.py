@@ -30,5 +30,7 @@ urlpatterns = [
     url(r'^listConsent', views.listConsent, name='listConsent'),
     url(r'^userData', views.userData, name='userData'),
     url(r'^exportCsv', views.exportCsv, name='exportCsv'),
+    url(r'^entityData', views.entityData, name='entityData'),
+    
     
 ]

@@ -185,7 +185,7 @@ def userData(request):
 
         for table in result:
             for record in table.records:
-                results.append((record.get_value(), record.get_field()))
+                results.append((record['_time'], record.get_measurement(), record['entity_id'], record.get_value()))
     except Exception as e:
         return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
     
@@ -221,6 +221,37 @@ def exportCsv(request):
     except Exception as e:
         return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
     return Response('Problem', status=status.HTTP_400_BAD_REQUEST)
+
+
+'''
+    Return entity ids of the sensors that collected data
+'''
+@csrf_exempt
+@api_view(('GET',))
+def entityData(request):
+    stay_id = request.GET['stay_id']
+    email = request.GET['email']
+
+    try:
+        qs = Stay_Data.objects.get(id=stay_id)
+        dataIn = qs.datein
+        dataOut = qs.dateout
+
+        query = f'from(bucket:"cassiopeiainflux") |> range(start: {dataIn}, stop: {dataOut})'
+
+        client = get_influxdb_client()
+        result = client.query_api().query(org='it', query=query)
+        results = []
+       
+        for table in result:
+            for record in table.records:
+                if not record['entity_id'] in results:
+                    results.append(record['entity_id'])
+                    
+    except Exception as e:
+        return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
+    
+    return JsonResponse({'email': email, 'entities':results}, status=status.HTTP_201_CREATED)
 
 
 
