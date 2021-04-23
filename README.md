@@ -6,6 +6,11 @@
 - Python 3
 
 
+## PostgreSQL - Database
+
+- `psql -p 5432 -h localhost -U postgresdb -W`
+- `psql -h localhost -p 5432 -U cassiopeia -W -d cassiopeiadb`
+- List all tables: `\dt`
 
 
 ## Authors
