@@ -2,6 +2,8 @@ import json
 import csv
 import logging
 import requests
+import datetime
+import pytz
 from django.http import JsonResponse
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -16,7 +18,7 @@ from influxdb_client import InfluxDBClient
 
 from django.conf import settings
 
-from .models import Stay_Data, User, Policy_Consent
+from .models import Stay_Data, User, Policy_Consent, Receipt_Data
 
 logger = logging.getLogger(__name__)
 
@@ -260,23 +262,43 @@ def entityData(request):
 @csrf_exempt
 @api_view(('GET',))
 def removeDataUser(request):
-    stay_id = request.GET['stay_id']
-
     try:
-        qs = Stay_Data.objects.get(id=stay_id)
+        stay_id = request.GET['stay_id']
+        email = request.GET['email']
+
+        user = User.objects.get(email=email)
+        qs = Stay_Data.objects.get(id=stay_id, email=user)
+
         dateIn = qs.datein
-        dateOut = qs.dateOut
+        dateOut = qs.dateout
+
+        #check if dateIn and dateOut are Date
+        if isinstance(dateIn, datetime.date):
+            print('convert dateIn to datetime')
+            dateIn = datetime.datetime(year=dateIn.year, month=dateIn.month, day=dateIn.day)
+
+        if isinstance(dateOut, datetime.date):
+            print('convert dateOut to datetime')
+            dateOut = datetime.datetime(year=dateOut.year, month=dateOut.month, day=dateOut.day)
+        fmt = '%Y-%m-%dT%H:%M:%SZ'
+        #utc = pytz.utc
+        #dateIn = utc.localize(dateIn)
+        dateIn = dateIn.strftime(fmt)
+        dateOut = dateOut.strftime(fmt) 
+
+        print(f'In {dateIn} Out {dateOut}')
         
-        query = f'influx delete --bucket cassiopeiainflux --start {dateIn} --stop {dateOut}'
+        #query = f'influx delete --bucket cassiopeiainflux --start {dateIn} --stop {dateOut}'
         client = get_influxdb_client()
-        client.query_api().query(org='it', query=query)
+        client.delete_api().delete(dateIn, dateOut, '',  bucket='cassiopeiainflux', org='it')
        
     except Exception as e:
         return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
 
     return Response('Data Removed', status=status.HTTP_200_OK)
 
-# testar esta ultima função
+
+
 
 '''
 TESTED
@@ -286,57 +308,22 @@ NOT TESTED
 
 
 '''
-    Receive receipt identification from receipt generator
-'''
+    Receive receipt from CASSIOPEIA
+
 @csrf_exempt
 @api_view(('POST',))
-def receiptInformation():
-    parameters = json.loads(request.body)
-    json_receipt = parameters['json_receipt']
-    receipt_timestamp = json_receipt['Receipt Timestamp']
-    id_receipt = json_receipt['Receipt ID']
-
+def receiptInformation(request):
     try:
-        Receipt_Data.objects.create(id_receipt=id_receipt, receipt_timestamp=receipt_timestamp)
-    except:
-        return Response('Cannot create the data stay record', status=status.HTTP_400_BAD_REQUEST)
-
-    return Response(status=status.HTTP_201_CREATED)
+        parameters = json.loads(request.body)
+        id_receipt = parameters['id_receipt']
+        stay_id = parameters['stay_id']
 
 
+        if User.objects.filter(email=email).email.exists():
+            Receipt_Data.objects.create(id_receipt=id_receipt, stay_id=stay_id)
+            
+    except Exception as e:
+        return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
 
-
-
-
-
-
-
-
+    return Response('Receipt ID stored', status=status.HTTP_201_CREATED)
 '''
-    List all the receipts of the user
-'''
-
-'''
-    Return the state of the receipt
-'''
-
-
-'''
-    Return active receipts
-'''
-
-
-'''
-    Return revoked receipts
-'''
-
-
-'''
-    Revoke a receipt
-'''
-
-
-'''
-    Remove a receipt after revoked ??
-'''
-

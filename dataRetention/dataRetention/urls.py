@@ -32,5 +32,7 @@ urlpatterns = [
     url(r'^exportCsv', views.exportCsv, name='exportCsv'),
     url(r'^entityData', views.entityData, name='entityData'),
     url(r'^removeDataUser', views.removeDataUser, name='removeDataUser'),
-    
+    #url(r'^receiptInformation', views.receiptInformation, name='receiptInformation'),
+
+
 ]

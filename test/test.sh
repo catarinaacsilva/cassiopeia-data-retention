@@ -78,10 +78,16 @@ curl -s -X GET "http://localhost:8000/exportCsv?stay_id=$stay_id" > data.csv
 # Return entity ids od the sensors that collected data
 
 echo -e "Return entity ids of the sensors that collected data"
-curl -s -X GET "http://localhost:8000/entityData?email=testinflux@email.com&stay_id=$stay_id"
+curl -s -X GET "http://localhost:8000/entityData?email=testinflux@email.com&stay_id=$stay_id" | jq .
 
 
 # Remove user data of the influxdb by stay and the email
 
 echo -e "Remove user data of the influxdb by stay and the email"
-curl -s -X GET "http://localhost:8000/removeDataUser?stay_id=$stay_id"
+curl -s -X GET "http://localhost:8000/removeDataUser?email=testinflux@email.com&stay_id=$stay_id" | jq .
+
+
+#echo -e "Insert receipt"
+#curl -d "{\"email\": myemail@email.com, \"stay_id\": $stay_id}" \
+#-H "Content-Type: application/json" \
+#http://localhost:8000/receiptInformation

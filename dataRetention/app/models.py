@@ -15,8 +15,7 @@ class Stay_Data(models.Model):
         ]
 
 class Receipt_Data(models.Model):
-    id_receipt = models.CharField(unique=True, max_length = 100)
-    receipt_timestamp = models.DateField()
+    id_receipt = models.UUIDField(default=uuid.uuid4, unique=True)
     stay_id = models.OneToOneField(Stay_Data, on_delete=models.CASCADE, primary_key=True)
 
 

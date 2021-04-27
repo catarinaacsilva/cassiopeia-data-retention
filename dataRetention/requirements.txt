@@ -3,3 +3,4 @@ psycopg2-binary>=2.8.6
 djangorestframework>=3.12.2
 requests>=2.25.1
 influxdb-client>=1.15.0
+pytz>=2021.1
