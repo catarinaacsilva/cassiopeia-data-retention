@@ -8,8 +8,10 @@
 
 ## PostgreSQL - Database
 
-- `psql -p 5432 -h localhost -U postgresdb -W`
-- `psql -h localhost -p 5432 -U cassiopeia -W -d cassiopeiadb`
+- `psql -p 5432 -h localhost -U data -W -d datadb`
+
+- Password is on secrets.py
+
 - List all tables: `\dt`
 
 

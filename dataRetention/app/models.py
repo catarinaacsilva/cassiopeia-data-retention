@@ -18,6 +18,10 @@ class Receipt_Data(models.Model):
     id_receipt = models.UUIDField(default=uuid.uuid4, unique=True)
     stay_id = models.OneToOneField(Stay_Data, on_delete=models.CASCADE, primary_key=True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['id_receipt', 'stay_id'], name='unique_receipt')
+        ]
 
 class Policy_Consent(models.Model):
     #email = models.ForeignKey(User, on_delete=models.CASCADE)

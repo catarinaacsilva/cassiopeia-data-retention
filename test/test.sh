@@ -87,7 +87,18 @@ echo -e "Remove user data of the influxdb by stay and the email"
 curl -s -X GET "http://localhost:8000/removeDataUser?email=testinflux@email.com&stay_id=$stay_id" | jq .
 
 
-#echo -e "Insert receipt"
-#curl -d "{\"email\": myemail@email.com, \"stay_id\": $stay_id}" \
-#-H "Content-Type: application/json" \
-#http://localhost:8000/receiptInformation
+
+#Insert receipt
+echo -e "Insert receipt"
+uuid=$(uuidgen)
+echo -e "uuid=$uuid"
+curl -d "{\"email\":\"testinflux@email.com\", \"id_receipt\":\"$uuid\", \"stay_id\": $stay_id}" \
+-H "Content-Type: application/json" \
+http://localhost:8000/receiptInformation | jq .
+
+
+
+#Get receipt id given the stay and the email
+echo -e "Get receipt id given the stay and the email"
+curl -s -X GET "http://localhost:8000/receiptsByStay?email=testinflux@email.com&stay_id=$stay_id" | jq .
+

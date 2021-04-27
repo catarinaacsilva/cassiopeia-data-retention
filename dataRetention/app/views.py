@@ -20,6 +20,8 @@ from django.conf import settings
 
 from .models import Stay_Data, User, Policy_Consent, Receipt_Data
 
+import traceback
+
 logger = logging.getLogger(__name__)
 
 
@@ -256,6 +258,7 @@ def entityData(request):
     return JsonResponse({'email': email, 'entities':results}, status=status.HTTP_201_CREATED)
 
 
+
 '''
     Remove user data of the influxdb by stay and the email
 '''
@@ -298,32 +301,66 @@ def removeDataUser(request):
     return Response('Data Removed', status=status.HTTP_200_OK)
 
 
+'''
+    Receive receipt from CASSIOPEIA
+'''
+@csrf_exempt
+@api_view(('POST',))
+def receiptInformation(request):
+    try:
+        parameters = json.loads(request.body)
+        stay_id = parameters['stay_id']
+        email = parameters['email']
+        id_receipt = parameters['id_receipt']
+
+        stay = Stay_Data.objects.get(id=stay_id, email=email)
+        if stay:
+            qs = Receipt_Data.objects.filter(stay_id=stay_id)
+            if not qs.exists():
+                if User.objects.get(email=email):
+                    Receipt_Data.objects.create(id_receipt=id_receipt, stay_id=stay)
+                else:
+                    return Response('Error: User does not exist', status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response('Error: Receipt already exists for this stay', status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response('Error: Stay does not exist', status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        tb = traceback.format_exc()
+        return Response(f'Exception: {e}\nTrace: {tb}\n', status=status.HTTP_400_BAD_REQUEST)
+
+    return Response('Receipt ID stored', status=status.HTTP_201_CREATED)
+
+
+''' 
+    Get receipt id given the stay and the email
+'''
+@csrf_exempt
+@api_view(('GET',))
+def receiptsByStay(request):
+    try:
+        stay_id = request.GET['stay_id']
+        email = request.GET['email']
+
+        response = None
+
+        stay = Stay_Data.objects.get(id=stay_id, email=email)
+
+        if stay:
+            receipt_info = Receipt_Data.objects.get(stay_id=stay_id)
+            response = receipt_info.id_receipt
+            print(response)
+            
+    except Exception as e:
+        return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
+
+    return JsonResponse({'email': email, 'stay_id':stay_id, 'receipt':response})
+
+
 
 
 '''
 TESTED
 ##################################################################################################
 NOT TESTED
-'''
-
-
-'''
-    Receive receipt from CASSIOPEIA
-
-@csrf_exempt
-@api_view(('POST',))
-def receiptInformation(request):
-    try:
-        parameters = json.loads(request.body)
-        id_receipt = parameters['id_receipt']
-        stay_id = parameters['stay_id']
-
-
-        if User.objects.filter(email=email).email.exists():
-            Receipt_Data.objects.create(id_receipt=id_receipt, stay_id=stay_id)
-            
-    except Exception as e:
-        return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
-
-    return Response('Receipt ID stored', status=status.HTTP_201_CREATED)
 '''
