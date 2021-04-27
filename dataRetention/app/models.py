@@ -15,7 +15,7 @@ class Stay_Data(models.Model):
         ]
 
 class Receipt_Data(models.Model):
-    id_receipt = models.UUIDField(default=uuid.uuid4, unique=True)
+    id_receipt = models.UUIDField(default=uuid.uuid4)
     stay_id = models.OneToOneField(Stay_Data, on_delete=models.CASCADE, primary_key=True)
 
     class Meta:
