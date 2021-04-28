@@ -332,6 +332,7 @@ def receiptInformation(request):
     return Response('Receipt ID stored', status=status.HTTP_201_CREATED)
 
 
+
 ''' 
     Get receipt id given the stay and the email
 '''

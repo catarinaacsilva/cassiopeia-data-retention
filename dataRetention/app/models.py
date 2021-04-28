@@ -29,3 +29,8 @@ class Policy_Consent(models.Model):
     consent = models.BooleanField()
     policy_id = models.CharField(unique=False, max_length = 100)
     timestamp = models.DateField()
+
+
+class Space(models.Model):
+    stay_id = models.OneToOneField(Stay_Data, on_delete=models.CASCADE)
+    devices = models.JSONField()
