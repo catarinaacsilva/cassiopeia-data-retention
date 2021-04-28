@@ -47,6 +47,13 @@ echo -e "List policy consent"
 curl -X GET http://localhost:8000/listConsent?stay_id=$stay_id | jq -s .
 
 
+# Add polices and devices
+echo -e "Add polices and devices"
+curl -d "{\"email\":\"myemail@email.com\", \"stay_id\": $stay_id, \"devices\": {\"device1\":\"policy1\"}}" \
+-H "Content-Type: application/json" \
+http://localhost:8000/policyByDevice | jq -s .
+
+
 ##############################################################################################################################
 
 #                                    TEST INFLUX
@@ -101,4 +108,8 @@ http://localhost:8000/receiptInformation | jq .
 #Get receipt id given the stay and the email
 echo -e "Get receipt id given the stay and the email"
 curl -s -X GET "http://localhost:8000/receiptsByStay?email=testinflux@email.com&stay_id=$stay_id" | jq .
+
+
+
+
 

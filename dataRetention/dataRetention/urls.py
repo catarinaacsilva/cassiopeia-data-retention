@@ -34,5 +34,7 @@ urlpatterns = [
     url(r'^removeDataUser', views.removeDataUser, name='removeDataUser'),
     url(r'^receiptInformation', views.receiptInformation, name='receiptInformation'),
     url(r'^receiptsByStay', views.receiptsByStay, name='receiptsByStay'),
+    url(r'^policyByDevice', views.policyByDevice, name='policyByDevice'),
+    
     
 ]

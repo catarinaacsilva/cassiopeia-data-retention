@@ -18,7 +18,7 @@ from influxdb_client import InfluxDBClient
 
 from django.conf import settings
 
-from .models import Stay_Data, User, Policy_Consent, Receipt_Data
+from .models import Stay_Data, User, Policy_Consent, Receipt_Data, Space
 
 import traceback
 
@@ -358,15 +358,6 @@ def receiptsByStay(request):
     return JsonResponse({'email': email, 'stay_id':stay_id, 'receipt':response})
 
 
-
-
-'''
-TESTED
-##################################################################################################
-NOT TESTED
-'''
-
-
 '''
     Add polices and devices
 '''
@@ -381,9 +372,41 @@ def policyByDevice(request):
         
         stay = Stay_Data.objects.get(id=stay_id, email=email)
         if stay:
-            r = Space.objects.create(stay_id=stay_id, devices=devices)
+            Space.objects.create(stay_id=stay, devices=devices)
         else:
             return Response('Error: Stay does not exist', status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST) 
+    return Response('Devices stored', status=status.HTTP_201_CREATED)
+
+
+'''
+TESTED
+##################################################################################################
+NOT TESTED
+'''
+
+'''
+    List devices and policies
+'''
+@csrf_exempt
+@api_view(('GET',))
+def listDevicesPolicies(request):
+    try:
+        stay_id = request.GET['stay_id']
+        email = request.GET['email']
+    
+        stay = Stay_Data.objects.get(id=stay_id, email=email)
         
-        return Response('Devices stored', status=status.HTTP_201_CREATED)
+        if stay:
+            qs = Space.objects.filter(stay_id = stay)
+            response = []
+            for s in qs:
+                response.append({'devices':s.devices.devices, 'policies': s.devices.policies})
+
         
+    except Exception as e:
+        return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
+
+    return JsonResponse({'email': email, 'stay_id':stay_id, 'devices':response})
