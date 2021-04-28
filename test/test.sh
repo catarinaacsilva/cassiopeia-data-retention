@@ -54,6 +54,11 @@ curl -d "{\"email\":\"myemail@email.com\", \"stay_id\": $stay_id, \"devices\": {
 http://localhost:8000/policyByDevice | jq -s .
 
 
+# List devices and policies
+echo -e "List devices and policies"
+curl -X GET "http://localhost:8000/listDevicesPolicies?email=myemail@email.com&stay_id=$stay_id" | jq -s .
+
+
 ##############################################################################################################################
 
 #                                    TEST INFLUX

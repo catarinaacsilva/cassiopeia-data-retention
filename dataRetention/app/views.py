@@ -382,12 +382,6 @@ def policyByDevice(request):
 
 
 '''
-TESTED
-##################################################################################################
-NOT TESTED
-'''
-
-'''
     List devices and policies
 '''
 @csrf_exempt
@@ -396,17 +390,23 @@ def listDevicesPolicies(request):
     try:
         stay_id = request.GET['stay_id']
         email = request.GET['email']
-    
+
         stay = Stay_Data.objects.get(id=stay_id, email=email)
         
-        if stay:
-            qs = Space.objects.filter(stay_id = stay)
-            response = []
-            for s in qs:
-                response.append({'devices':s.devices.devices, 'policies': s.devices.policies})
+        response = None
 
-        
+        if stay:
+            qs = Space.objects.get(stay_id = stay)
+            response = qs.devices
     except Exception as e:
         return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
 
-    return JsonResponse({'email': email, 'stay_id':stay_id, 'devices':response})
+    return JsonResponse({'email': email, 'stay_id':stay_id, 'Policies':response})
+
+
+'''
+TESTED
+##################################################################################################
+NOT TESTED
+'''
+

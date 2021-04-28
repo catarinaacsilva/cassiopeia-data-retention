@@ -35,6 +35,7 @@ urlpatterns = [
     url(r'^receiptInformation', views.receiptInformation, name='receiptInformation'),
     url(r'^receiptsByStay', views.receiptsByStay, name='receiptsByStay'),
     url(r'^policyByDevice', views.policyByDevice, name='policyByDevice'),
+    url(r'^listDevicesPolicies', views.listDevicesPolicies, name='listDevicesPolicies'),
     
     
 ]
