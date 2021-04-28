@@ -365,3 +365,25 @@ TESTED
 ##################################################################################################
 NOT TESTED
 '''
+
+
+'''
+    Add polices and devices
+'''
+@csrf_exempt
+@api_view(('POST',))
+def policyByDevice(request):
+    try:
+        parameters = json.loads(request.body)
+        stay_id = parameters['stay_id']
+        email = parameters['email']
+        devices = parameters['devices']
+        
+        stay = Stay_Data.objects.get(id=stay_id, email=email)
+        if stay:
+            r = Space.objects.create(stay_id=stay_id, devices=devices)
+        else:
+            return Response('Error: Stay does not exist', status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response('Devices stored', status=status.HTTP_201_CREATED)
+        
