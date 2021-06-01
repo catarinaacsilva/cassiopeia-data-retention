@@ -1,0 +1,45 @@
+version: '3'
+services:
+    postgres:
+        restart: always
+        image: lmmdock/postgres-multi:latest
+        volumes:
+            - postgres-storage:/var/lib/postgresql/data
+        environment:
+            - POSTGRES_DATABASES=dataretentiondb:${DATA_USER}
+            - POSTGRES_USERS=${DATA_USER}:${DATA_PASSWORD}
+        ports:
+            - "5432:5432"
+        restart: always
+    
+    receipt:
+        build: ../receipt-generator/receiptGenerator
+        volumes:
+            - ../receipt-generator/receiptGenerator:/app
+        ports:
+            - "8001:81"
+        depends_on:
+            - postgres
+        command: bash -c "sleep 5 && python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:81"
+        restart: always
+    
+    dataretention:
+        build: ../cassiopeia-data-retention/dataRetention
+        volumes:
+            - ../cassiopeia-data-retention/dataRetention:/app
+        ports:
+            - "8002:82"
+        depends_on:
+            - postgres
+        command: bash -c "sleep 5 && python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:82"
+        restart: always
+      
+
+volumes:
+    postgres-storage:
+      driver: local
+      driver_opts:
+        o: bind
+        type: none
+        device: ./postgres
+   

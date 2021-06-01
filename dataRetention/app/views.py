@@ -106,7 +106,7 @@ def allStays(request):
 
 
 '''
-    Remove stay: For debug only
+    Remove stay
 '''
 @csrf_exempt
 @api_view(('POST',))
