@@ -132,3 +132,5 @@ secrets.py
 .vscode/
 
 *.csv
+
+env.sh
