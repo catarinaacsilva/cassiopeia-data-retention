@@ -85,7 +85,7 @@ DATABASES = {
         'NAME': 'dataretentiondb',
         'USER': DATABASE_USERNAME,
         'PASSWORD': DATABASE_PASSWORD,
-        'HOST': 'postgres',
+        'HOST': 'localhost',
         'PORT': '5432',
     }
 }

@@ -405,8 +405,21 @@ def listDevicesPolicies(request):
 
 
 '''
-TESTED
+
 ##################################################################################################
-NOT TESTED
+                            INTERFACE
+##################################################################################################
+
 '''
 
+'''
+    Render the page to request for data deletion
+'''
+def requestDataDeletion(request):
+    return render(request, 'dataDeletion.html')
+
+def getStayInfo(request):
+    return render(request, 'listStays.html')
+
+def dataexportrequest(request):
+    return render(request, 'export.html')

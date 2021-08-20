@@ -7,7 +7,7 @@
 
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<title>Data Manager</title>
+	<title>Data Management</title>
 	<link href="http://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700,800" rel="stylesheet" />
 	<link href="{% static "/css/defaulttest.css"%}" rel="stylesheet">
 	<link href="{% static "/css/fonts.css"%}" rel="stylesheet">
@@ -18,34 +18,37 @@
 	<div id="header-wrapper">
 		<div id="header" class="container">
 			<div id="logo">
-				<h1><a href="/">Data Manager</a></h1>
+				<h1><a href="/">Data Management</a></h1>
 			</div>
 			<div id="menu">
-				
+				<ul>
+					<li class="current_page_item"><a href="/" title="">User</a></li>
+					
+				</ul>
 			</div>
 		</div>
 	</div>
+
 	<div id="featured">&nbsp;</div>
-	<div id="wrapper">
-		<div id="page" class="container">
+	<div id="banner-wrapper">
+		<div id="banner" class="container">
 			
-				<div class="title">
-					<div style="width: 100%;">
-						<div style="width: 50%; height: 200px; float: left;"> 
-							<div> <a href="int/datadeletion" class="button">Request Data Deletion</a></div>
-							<div> <a href="int/stayinfo" class="button">Stays Information</a></div> 
-							<div> <a href="int/dataexport" class="button">Export Data</a></div>
+			<form action="receipts" method="post">
+				{% csrf_token %}
+				{{ form }}
+				<input type="submit" value="Submit">
+			</form>
 		
-						</div>
-						
-					</div>
-				</div>
-			
+			{% block content %}
+			<div class="box-left">
+				
+				{% for receipt in receipts %}
+				<li>{{receipt}}</li>
+				{%endfor%}
+				
+			</div>
+			{% endblock %}
 		</div>
 	</div>
-			
 	</body>
-
 </html>
-
-

@@ -38,4 +38,10 @@ urlpatterns = [
     url(r'^listDevicesPolicies', views.listDevicesPolicies, name='listDevicesPolicies'),
     
     
+
+    url(r'^int/datadeletion', views.requestDataDeletion, name='requestDataDeletion'),
+    url(r'^int/stayinfo', views.getStayInfo, name='getStayInfo'),
+    url(r'^int/dataexport', views.dataexportrequest, name='dataexportrequest'),
+
+
 ]
