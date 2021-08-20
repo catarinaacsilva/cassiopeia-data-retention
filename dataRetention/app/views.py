@@ -430,3 +430,14 @@ def getStayInfo(request):
 
 def dataexportrequest(request):
     return render(request, 'export.html')
+
+
+def listReceipts(request):
+    receipts = []
+    
+    receipt_object = Receipt_Data.objects.all()
+    for r in receipt_object:
+        di = {'id_receipt': r.id_receipt, 'stay_id': r.stay_id}
+
+        receipts.append(di)
+    return render(request, 'listReceipts.html', {'Receipts': receipts})

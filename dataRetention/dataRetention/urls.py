@@ -42,6 +42,7 @@ urlpatterns = [
     url(r'^int/datadeletion', views.requestDataDeletion, name='requestDataDeletion'),
     url(r'^int/stayinfo', views.getStayInfo, name='getStayInfo'),
     url(r'^int/dataexport', views.dataexportrequest, name='dataexportrequest'),
+    url(r'^int/listreceipts', views.listReceipts, name='listReceipts'),
 
 
 ]

@@ -7,7 +7,7 @@
 
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<title>Data Management</title>
+	<title>Data Manager</title>
 	<link href="http://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700,800" rel="stylesheet" />
 	<link href="{% static "/css/defaulttest.css"%}" rel="stylesheet">
 	<link href="{% static "/css/fonts.css"%}" rel="stylesheet">
@@ -18,37 +18,30 @@
 	<div id="header-wrapper">
 		<div id="header" class="container">
 			<div id="logo">
-				<h1><a href="/">Data Management</a></h1>
+				<h1><a href="/">Data Manager</a></h1>
 			</div>
 			<div id="menu">
-				<ul>
-					<li class="current_page_item"><a href="/" title="">User</a></li>
-					
-				</ul>
+				
 			</div>
 		</div>
 	</div>
-
 	<div id="featured">&nbsp;</div>
 	<div id="banner-wrapper">
 		<div id="banner" class="container">
-			
-			<form action="receipts" method="post">
-				{% csrf_token %}
-				{{ form }}
-				<input type="submit" value="Submit">
-			</form>
-		
 			{% block content %}
-			<div class="box-left">
-				
-				{% for receipt in receipts %}
-				<li>{{receipt}}</li>
-				{%endfor%}
-				
-			</div>
+			{% for receipt in Receipts %}
+				<p><b>Receipt ID:</b> {{ receipt.id_receipt }}</p>
+				<p><b>Stay ID:</b> {{ receipt.stay_id }}</p>
+  			{%endfor%}
 			{% endblock %}
 		</div>
+		 
 	</div>
+
+
+	
 	</body>
+
+	<script src="{% static "/js/form.js"%}"></script>
+
 </html>
