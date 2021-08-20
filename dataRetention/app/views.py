@@ -419,7 +419,14 @@ def requestDataDeletion(request):
     return render(request, 'dataDeletion.html')
 
 def getStayInfo(request):
-    return render(request, 'listStays.html')
+    stays = []
+    
+    stay_object = Stay_Data.objects.all()
+    for s in stay_object:
+        di = {'email': s.email, 'datein': s.datein, 'dateout': s.dateout}
+
+        stays.append(di)
+    return render(request, 'listStays.html', {'Stays': stays})
 
 def dataexportrequest(request):
     return render(request, 'export.html')
