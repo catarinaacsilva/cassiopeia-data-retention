@@ -22,3 +22,6 @@
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+
+
+psql -p 5432 -h localhost -U data -W -d dataretentiondb

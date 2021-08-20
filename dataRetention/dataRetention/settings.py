@@ -136,3 +136,6 @@ STATICFILES_DIRS = (os.path.join('static'),)
 INFLUXDB_URL = 'http://10.0.12.40:8086'
 INFLUXDB_TOKEN = 'admintoken123'
 INFLUXDB_ORG = 'it'
+
+
+RECEIPTGET = 'http://127.0.0.1:8001/getReceipt' 

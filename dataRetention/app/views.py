@@ -2,8 +2,8 @@ import json
 import csv
 import logging
 import requests
-import datetime
 import pytz
+from datetime import datetime, date
 from django.http import JsonResponse
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -18,7 +18,7 @@ from influxdb_client import InfluxDBClient
 
 from django.conf import settings
 
-from .models import Stay_Data, User, Policy_Consent, Receipt_Data, Space
+from .models import Stay, User, Stay_Receipt
 
 import traceback
 
@@ -42,129 +42,38 @@ def get_influxdb_client():
     return client
 
 '''
-    Receive data stay from cassiopeia
+    Receive data stay from privacy manager
 '''
 @csrf_exempt
 @api_view(('POST',))
 def stayData(request):
     parameters = json.loads(request.body)
-    datein = parameters['datein']
-    dateout = parameters['dateout']
+    datein = datetime.strptime(parameters['datein'], '%Y-%m-%d %H:%M:%S')
+    dateout = datetime.strptime(parameters['dateout'], '%Y-%m-%d %H:%M:%S')
     email = parameters['email']
+    receipt_id = parameters['receipt_id']
 
     try:
         # check if it exists
-        qs = Stay_Data.objects.filter(email=email, datein=datein, dateout=dateout)
+        qs = Stay.objects.filter(email=email, datein=datein, dateout=dateout)
         if not qs.exists():
             with transaction.atomic():
                 if not User.objects.filter(email=email).exists():
                     User.objects.create(email=email)
                 user = User.objects.get(email=email)
-                stay = Stay_Data.objects.create(email=user, datein=datein, dateout=dateout)
+                stay = Stay.objects.create(email=user, datein=datein, dateout=dateout)
         else:
             stay = qs.first()
+        
+        # Store receipt id
+        Stay_Receipt.objects.create(stayid=stay, receiptid=receipt_id)
 
     except Exception as e:
+        print(e)
         return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
     
     print({'stay_id': stay.pk})
     return JsonResponse({'stay_id': int(stay.pk)}, status=status.HTTP_201_CREATED)
-
-'''
-    Send the stay id to cassiopeia
-'''
-@csrf_exempt
-@api_view(('GET',))
-def getStayId(request):
-    email = request.GET['email']
-    datein = request.GET['datein']
-    dateout = request.GET['dateout']
-
-    try:
-        qs = Stay_Data.objects.filter(email=email, datein=datein, dateout=dateout)
-        stay = qs.first()
-    except Exception as e:
-        return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
-
-    return JsonResponse({'email': email, 'datein':datein, 'dateout':dateout, 'stay_id':int(stay.pk)}, status=status.HTTP_201_CREATED)
-
-
-'''
-    List all the stays
-'''
-@csrf_exempt
-@api_view(('GET',))
-def allStays(request):
-    email = request.GET['email']
-
-    stay_info = Stay_Data.objects.filter(email=email)
-    response = []
-    for stay in stay_info:
-        response.append({'id':stay.id, 'dateIn': stay.datein, 'dateOut': stay.dateout})
-
-    return JsonResponse({'email': email, 'stays':response}, status=status.HTTP_201_CREATED)
-
-
-'''
-    Remove stay
-'''
-@csrf_exempt
-@api_view(('POST',))
-def removeStay(request):
-    parameters = json.loads(request.body)
-    datein = parameters['datein']
-    dateout = parameters['dateout']
-    email = parameters['email']
-
-    try:
-        with transaction.atomic():
-            user = User.objects.get(email=email)
-            Stay_Data.objects.filter(email=user, datein=datein, dateout=dateout).delete()
-    except Exception as e:
-        return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
-
-    return Response(status=status.HTTP_201_CREATED)
-
-
-'''
-    Receive consent information from cassiopeia
-'''
-@csrf_exempt
-@api_view(('POST',))
-def consentInformation(request):
-    parameters = json.loads(request.body)
-    policyid = parameters['policyid']
-    consent = parameters['consent']
-    timestamp = parameters['timestamp']
-    stay_id = parameters['stay_id']
-
-    try:
-        with transaction.atomic():
-            stay = Stay_Data.objects.get(pk=stay_id)
-            if stay:
-                Policy_Consent.objects.create(policy_id=policyid, consent=consent, stay_id=stay, timestamp=timestamp)
-            else:
-                return Response(f'Stay id ({stay_id}) does not exist', status=status.HTTP_400_BAD_REQUEST)
-    except Exception as e:
-        return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
-
-    return Response(status=status.HTTP_201_CREATED)
-
-
-'''
-    List consent information
-'''
-@csrf_exempt
-@api_view(('GET',))
-def listConsent(request):
-    stay_id = request.GET['stay_id']
-
-    consent_info = Policy_Consent.objects.filter(stay_id=stay_id)
-    response = []
-    for c in consent_info:
-        response.append({'policyid':c.policy_id, 'consent': c.consent, 'timestamp': c.timestamp})
-
-    return JsonResponse({'stay_id': stay_id, 'consents':response}, status=status.HTTP_201_CREATED)
 
 
 '''
@@ -205,12 +114,11 @@ def exportCsv(request):
     stay_id = request.GET['stay_id']
 
     try:
-        qs = Stay_Data.objects.get(id=stay_id)
+        qs = Stay.objects.get(id=stay_id)
         dateIn = qs.datein
         dateOut = qs.dateout
 
         query = f'from(bucket:"cassiopeiainflux") |> range(start: {dateIn}, stop: {dateOut})'
-        
         client = get_influxdb_client()
         result = client.query_api().query(org='it', query=query)
         
@@ -253,6 +161,7 @@ def entityData(request):
                     results.append(record['entity_id'])
                     
     except Exception as e:
+        print(e)
         return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
     
     return JsonResponse({'email': email, 'entities':results}, status=status.HTTP_201_CREATED)
@@ -263,26 +172,29 @@ def entityData(request):
     Remove user data of the influxdb by stay and the email
 '''
 @csrf_exempt
-@api_view(('GET',))
+@api_view(('DELETE',))
 def removeDataUser(request):
     try:
         stay_id = request.GET['stay_id']
         email = request.GET['email']
-
+        # get stay
         user = User.objects.get(email=email)
-        qs = Stay_Data.objects.get(id=stay_id, email=user)
+        qs = Stay.objects.get(id=stay_id, email=user)
 
+        if qs.deleted:
+            return Response('Data Removed', status=status.HTTP_200_OK)
+        
         dateIn = qs.datein
         dateOut = qs.dateout
 
         #check if dateIn and dateOut are Date
-        if isinstance(dateIn, datetime.date):
+        if isinstance(dateIn, date):
             print('convert dateIn to datetime')
-            dateIn = datetime.datetime(year=dateIn.year, month=dateIn.month, day=dateIn.day)
+            dateIn = datetime(year=dateIn.year, month=dateIn.month, day=dateIn.day)
 
-        if isinstance(dateOut, datetime.date):
+        if isinstance(dateOut, date):
             print('convert dateOut to datetime')
-            dateOut = datetime.datetime(year=dateOut.year, month=dateOut.month, day=dateOut.day)
+            dateOut = datetime(year=dateOut.year, month=dateOut.month, day=dateOut.day)
         fmt = '%Y-%m-%dT%H:%M:%SZ'
         #utc = pytz.utc
         #dateIn = utc.localize(dateIn)
@@ -291,153 +203,85 @@ def removeDataUser(request):
 
         print(f'In {dateIn} Out {dateOut}')
         
-        #query = f'influx delete --bucket cassiopeiainflux --start {dateIn} --stop {dateOut}'
+        # query = f'influx delete --bucket cassiopeiainflux --start {dateIn} --stop {dateOut}'
         client = get_influxdb_client()
+
+        # compute means and stddev
+        query = f'from(bucket:"cassiopeiainflux") |> range(start: {dateIn}, stop: {dateOut}) |> mean()'
+        result_means = client.query_api().query(org='it', query=query)
+        query = f'from(bucket:"cassiopeiainflux") |> range(start: {dateIn}, stop: {dateOut}) |> stddev()'
+        result_stddev = client.query_api().query(org='it', query=query)
+        
+        # store summary
+        #TODO
+
+        # purge data
         client.delete_api().delete(dateIn, dateOut, '',  bucket='cassiopeiainflux', org='it')
-       
+
+        # mark data as purged
+        qs.deleted = True
+        qs.save()
+
     except Exception as e:
+        print(e)
         return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
 
     return Response('Data Removed', status=status.HTTP_200_OK)
 
 
-'''
-    Receive receipt from CASSIOPEIA
-'''
-@csrf_exempt
-@api_view(('POST',))
-def receiptInformation(request):
-    try:
-        parameters = json.loads(request.body)
-        stay_id = parameters['stay_id']
-        email = parameters['email']
-        id_receipt = parameters['id_receipt']
-
-        stay = Stay_Data.objects.get(id=stay_id, email=email)
-        if stay:
-            qs = Receipt_Data.objects.filter(stay_id=stay_id)
-            if not qs.exists():
-                if User.objects.get(email=email):
-                    Receipt_Data.objects.create(id_receipt=id_receipt, stay_id=stay)
-                else:
-                    return Response('Error: User does not exist', status=status.HTTP_400_BAD_REQUEST)
-            else:
-                return Response('Error: Receipt already exists for this stay', status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response('Error: Stay does not exist', status=status.HTTP_400_BAD_REQUEST)
-    except Exception as e:
-        tb = traceback.format_exc()
-        return Response(f'Exception: {e}\nTrace: {tb}\n', status=status.HTTP_400_BAD_REQUEST)
-
-    return Response('Receipt ID stored', status=status.HTTP_201_CREATED)
-
-
-
-''' 
-    Get receipt id given the stay and the email
-'''
 @csrf_exempt
 @api_view(('GET',))
-def receiptsByStay(request):
+def getStays(request):
+    stays = []
     try:
-        stay_id = request.GET['stay_id']
         email = request.GET['email']
 
-        response = None
-
-        stay = Stay_Data.objects.get(id=stay_id, email=email)
-
-        if stay:
-            receipt_info = Receipt_Data.objects.get(stay_id=stay_id)
-            response = receipt_info.id_receipt
-            print(response)
+        receipt_object = Stay_Receipt.objects.filter(stayid__email=email)
+        for r in receipt_object:
             
+            url = settings.RECEIPTGET
+            p = {'email': email, 'receiptid': r.receiptid}
+            x = requests.get(url, params=p)
+            print(x.text)
+            receipt_object = json.loads(x.text)['receipt']
+            ri = {'receipt': json.dumps(receipt_object), 'stayId': r.stayid.pk, 'din': r.stayid.datein, 'dout':r.stayid.dateout, 'deleted': r.stayid.deleted}
+            stays.append(ri)
     except Exception as e:
+        print(e) 
         return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
-
-    return JsonResponse({'email': email, 'stay_id':stay_id, 'receipt':response})
-
+    return JsonResponse({'stays': stays}, status=status.HTTP_200_CREATED)
 
 '''
-    Add polices and devices
-'''
-@csrf_exempt
-@api_view(('POST',))
-def policyByDevice(request):
-    try:
-        parameters = json.loads(request.body)
-        stay_id = parameters['stay_id']
-        email = parameters['email']
-        devices = parameters['devices']
-        
-        stay = Stay_Data.objects.get(id=stay_id, email=email)
-        if stay:
-            Space.objects.create(stay_id=stay, devices=devices)
-        else:
-            return Response('Error: Stay does not exist', status=status.HTTP_400_BAD_REQUEST)
-
-    except Exception as e:
-        return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST) 
-    return Response('Devices stored', status=status.HTTP_201_CREATED)
-
-
-'''
-    List devices and policies
-'''
-@csrf_exempt
-@api_view(('GET',))
-def listDevicesPolicies(request):
-    try:
-        stay_id = request.GET['stay_id']
-        email = request.GET['email']
-
-        stay = Stay_Data.objects.get(id=stay_id, email=email)
-        
-        response = None
-
-        if stay:
-            qs = Space.objects.get(stay_id = stay)
-            response = qs.devices
-    except Exception as e:
-        return Response(f'Exception: {e}\n', status=status.HTTP_400_BAD_REQUEST)
-
-    return JsonResponse({'email': email, 'stay_id':stay_id, 'Policies':response})
-
-
-'''
-
 ##################################################################################################
                             INTERFACE
 ##################################################################################################
-
 '''
-
-'''
-    Render the page to request for data deletion
-'''
-def requestDataDeletion(request):
-    return render(request, 'dataDeletion.html')
-
-def getStayInfo(request):
-    stays = []
-    
-    stay_object = Stay_Data.objects.all()
-    for s in stay_object:
-        di = {'email': s.email, 'datein': s.datein, 'dateout': s.dateout}
-
-        stays.append(di)
-    return render(request, 'listStays.html', {'Stays': stays})
-
-def dataexportrequest(request):
-    return render(request, 'export.html')
-
 
 def listReceipts(request):
-    receipts = []
-    
-    receipt_object = Receipt_Data.objects.all()
-    for r in receipt_object:
-        di = {'id_receipt': r.id_receipt, 'stay_id': r.stay_id}
+    # get email from url parameter
+    email = request.GET.get('email', None)
 
-        receipts.append(di)
-    return render(request, 'listReceipts.html', {'Receipts': receipts})
+    receipts = []
+    emails = []
+
+    # get all users
+    users = User.objects.all()
+    for u in users:
+        emails.append(u.email)
+    
+    # get the first email for available users
+    if email is None and len(emails) > 0:
+        email = emails[0]
+    
+    receipt_object = Stay_Receipt.objects.filter(stayid__email=email)
+    for r in receipt_object:
+        print(r.stayid.pk)
+        url = settings.RECEIPTGET
+        p = {'email': email, 'receiptid': r.receiptid}
+        x = requests.get(url, params=p)
+        #print(x.text)
+        receipt_object = json.loads(x.text)['receipt']
+        ri = {'receipt': json.dumps(receipt_object), 'stayId': r.stayid.pk, 'din': r.stayid.datein, 'dout':r.stayid.dateout, 'deleted': r.stayid.deleted}
+        receipts.append(ri)
+    return render(request, 'listReceipts.html', {'email':email, 'emails':emails, 'receipts': receipts}) 
+

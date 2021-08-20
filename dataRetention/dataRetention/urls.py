@@ -21,28 +21,12 @@ from django.conf.urls import url
 from app import views
 
 urlpatterns = [
-    url(r'^$', views.index, name='index'),
+    url(r'^$', views.listReceipts, name='index'),
     url(r'^stayData', views.stayData, name='stayData'),
-    url(r'^getStayId', views.getStayId, name='getStayId'),
-    url(r'^allStays', views.allStays, name='allStays'),
-    url(r'^removeStay', views.removeStay, name='removeStay'),
-    url(r'^consentInformation', views.consentInformation, name='consentInformation'),
-    url(r'^listConsent', views.listConsent, name='listConsent'),
     url(r'^userData', views.userData, name='userData'),
+    url(r'^getStays', views.getStays, name='getStays'),
     url(r'^exportCsv', views.exportCsv, name='exportCsv'),
     url(r'^entityData', views.entityData, name='entityData'),
     url(r'^removeDataUser', views.removeDataUser, name='removeDataUser'),
-    url(r'^receiptInformation', views.receiptInformation, name='receiptInformation'),
-    url(r'^receiptsByStay', views.receiptsByStay, name='receiptsByStay'),
-    url(r'^policyByDevice', views.policyByDevice, name='policyByDevice'),
-    url(r'^listDevicesPolicies', views.listDevicesPolicies, name='listDevicesPolicies'),
-    
-    
-
-    url(r'^int/datadeletion', views.requestDataDeletion, name='requestDataDeletion'),
-    url(r'^int/stayinfo', views.getStayInfo, name='getStayInfo'),
-    url(r'^int/dataexport', views.dataexportrequest, name='dataexportrequest'),
-    url(r'^int/listreceipts', views.listReceipts, name='listReceipts'),
-
-
+    #url(r'^int/listreceipts', views.listReceipts, name='listReceipts'),
 ]
