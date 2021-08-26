@@ -11,7 +11,7 @@
 		font-family: 'Open Sans', sans-serif;
 		font-size: 11pt;
 		font-weight: 300;
-		color: #6c6c6c
+		color: black
 	}
 	
 	
@@ -106,7 +106,7 @@
 		padding: 0em 0em 0em 0em;
 		overflow: hidden;
 		list-style: none;
-		color: #6c6c6c
+		color: black
 	}
 	
 	ul.style1 li
