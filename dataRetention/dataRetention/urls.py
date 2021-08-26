@@ -21,12 +21,13 @@ from django.conf.urls import url
 from app import views
 
 urlpatterns = [
-    url(r'^$', views.listReceipts, name='index'),
+    url(r'^$', views.index, name='index'),
     url(r'^stayData', views.stayData, name='stayData'),
     url(r'^userData', views.userData, name='userData'),
     url(r'^getStays', views.getStays, name='getStays'),
     url(r'^exportCsv', views.exportCsv, name='exportCsv'),
     url(r'^entityData', views.entityData, name='entityData'),
+    url(r'^requestDataDeletion', views.requestDataDeletion, name='requestDataDeletion'),
+    url(r'^deletion', views.deletion, name='deletion'),
     url(r'^removeDataUser', views.removeDataUser, name='removeDataUser'),
-    #url(r'^int/listreceipts', views.listReceipts, name='listReceipts'),
 ]

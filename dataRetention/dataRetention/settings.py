@@ -138,4 +138,6 @@ INFLUXDB_TOKEN = 'admintoken123'
 INFLUXDB_ORG = 'it'
 
 
-RECEIPTGET = 'http://127.0.0.1:8001/getReceipt' 
+RECEIPTGET = 'http://127.0.0.1:8001/getReceipt'
+
+PRIVACYREQUEST = 'http://127.0.0.1:8000/requestDeletion'

@@ -39,10 +39,6 @@
 		line-height: 180%;
 	}
 	
-	strong
-	{
-	}
-	
 	a
 	{
 		color: #28AFEE;
@@ -242,13 +238,6 @@
 		color: #FFF;
 	}
 
-		.button:hover
-		{
-		}
-		
-		.button:active
-		{
-		}
 		
 		.button-big
 		{
@@ -360,10 +349,6 @@
 		text-transform: uppercase;
 		outline: 0;
 		color: #898989;
-	}
-	
-	#menu li:hover a, #menu li.active a, #menu li.active span
-	{
 	}
 	
 	#menu .current_page_item a
@@ -528,5 +513,45 @@
 		font-size: 1.8em;
 	}
 
+/*********************************************************************************/
+/* Forms                                                                         */
+/*********************************************************************************/
 
+input[type=text] {
+	padding: 10px;
+	margin:10px 0;
+	border-radius:10px;
+}
 
+input[type=email] {
+	padding: 10px;
+	margin:10px 0;
+	border-radius:10px;
+}
+
+input[type=submit] {
+	padding:10px;
+	border:none;
+	background-color:#04AA6D;
+	color:#fff;
+	font-weight:600;
+	border-radius:10px;
+	width:100%;
+	margin:10px 0;
+}
+
+input {
+	width:100%;
+	box-sizing: border-box;
+}
+
+input, textarea {
+	font-family:inherit;
+	font-size: inherit;
+}
+
+select {
+	width: 100%;
+	padding:10px;
+	border-radius:10px;
+}

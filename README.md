@@ -8,6 +8,8 @@
 
 ## PostgreSQL - Database
 
+- `python manage.py dbshell`
+
 - `psql -p 5432 -h localhost -U data -W -d datadb`
 
 - Password is on secrets.py

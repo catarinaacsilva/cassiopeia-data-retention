@@ -37,7 +37,7 @@ function handleDelete(id, email) {
 
     const base = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port
     console.log(base);
-    const target = new URL('/removeDataUser/', base);
+    const target = new URL('/requestDataDeletion/', base);
     const params = new URLSearchParams();
     params.set('stay_id', id);
     params.set('email', email);
